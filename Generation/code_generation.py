@@ -133,6 +133,9 @@ def generate_outputs(
             max_new_tokens=50,
             pad_token_id=tokenizer.pad_token_id,
         )
+    else:
+        generation_strategy = GenerationConfig.from_pretrained(generation_strategy)
+        generation_strategy.pad_token_id = tokenizer.pad_token_id
 
     # Log Experiment parameters
     wandb.config.update(
