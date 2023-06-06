@@ -111,6 +111,9 @@ def generate_outputs(
     if wandb_project_name == None:
         todays_date = datetime.today().strftime("%Y-%m-%d")
         wandb_project_name = f"inference-{model_name}-{todays_date}"
+
+    # wanb project name cannot contain characters '/,\\,#,?,%,:'
+    wandb_project_name = wandb_project_name.replace("/", "-")
     wandb.init(project=wandb_project_name)
 
     # Load the model and tokenizer
