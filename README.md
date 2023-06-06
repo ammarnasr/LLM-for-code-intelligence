@@ -7,9 +7,9 @@ large language models for code intelligence - Msc Project
 
 Colab: <a href="https://colab.research.google.com/drive/1B_cfCkliI-UuNemmgMmXqxgjnDLslAq1?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=20></a>  
 
-Huggingface: <a href="https://huggingface.co/ammarnasr/codegen-350M-multi-ft-on-code-x-glue-tc"><img src="https://img.shields.io/badge/huggingface-Model-blue"></a>
+Huggingface: <a href="https://huggingface.co/ammarnasr/codegen-350M-multi-ft-on-code-x-glue-tc"><img src="https://huggingface.co/datasets/huggingface/badges/raw/main/share-to-community-sm-dark.svg"></a>
 
-Weights & Biases: <a href="https://wandb.ai/ammarnasr/codegen_ft_on_codexglue?workspace=user-ammarnasr"><img src="https://img.shields.io/badge/wandb-Report-blue"></a>
+Weights & Biases: <a href="https://wandb.ai/ammarnasr/codegen_ft_on_codexglue?workspace=user-ammarnasr"><img src="https://raw.githubusercontent.com/wandb/assets/main/wandb-github-badge-28.svg"></a>
 
 
 ## Evaluation on HumanEval
