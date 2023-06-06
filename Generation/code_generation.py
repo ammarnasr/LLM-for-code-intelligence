@@ -282,7 +282,7 @@ def main():
 
     # Split the stop tokens
     if args.stop_tokens != None:
-        stop_tokens = stop_tokens.split(",")
+        args.stop_tokens = args.stop_tokens.split(",")
 
     # Print the Arguments
     print("Starting the code generation with the following arguments:")
