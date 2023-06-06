@@ -272,19 +272,6 @@ def read_prompts(prompts_file_name, prompt_text_key="prompt", prompt_id_key="tas
     return prompts
 
 
-def split_stop_tokens(stop_tokens):
-    """
-    Splits the stop tokens string into a list of stop tokens.
-
-    Args:
-        stop_tokens (str): String of stop tokens.
-
-    Returns:
-        list[str]: List of stop tokens.
-    """
-    stop_tokens = stop_tokens.split(",")
-    return stop_tokens
-
 def main():
     # Get inputs from arguments
     parser = get_parser_object_for_code_generation_script()
@@ -295,7 +282,7 @@ def main():
 
     # Split the stop tokens
     if args.stop_tokens != None:
-        args.stop_tokens = split_stop_tokens(args.stop_tokens)
+        stop_tokens = stop_tokens.split(",")
 
     # Print the Arguments
     print("Starting the code generation with the following arguments:")
