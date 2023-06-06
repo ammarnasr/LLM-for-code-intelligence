@@ -1,4 +1,5 @@
 import wandb
+import pickle
 import argparse
 import jsonlines
 from tqdm import tqdm
@@ -282,7 +283,10 @@ def main():
 
     # Split the stop tokens
     if args.stop_tokens != None:
-        args.stop_tokens = args.stop_tokens.split(",")
+        stop_tokens = args.stop_tokens.split(",")
+    else:
+        with open('stop_tokens.pkl', 'rb') as f:
+            stop_tokens = pickle.load(f)
 
     # Print the Arguments
     print("Starting the code generation with the following arguments:")
@@ -294,7 +298,7 @@ def main():
         args.model_name,
         args.tokenizer_name,
         args.generation_strategy,
-        args.stop_tokens,
+        stop_tokens,
         args.prefix_instruction,
         args.output_file_name,
         args.device,
