@@ -7,4 +7,4 @@ pip install -r requirements.txt
 wandb login
 
 # Login to HuggingFace
-transformers-cli login
+huggingface-cli login
