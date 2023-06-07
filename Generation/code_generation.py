@@ -253,7 +253,7 @@ def stop_at_stop_token(decoded_string, stop_tokens):
             min_stop_index = stop_index
     return decoded_string[:min_stop_index]
 
-def read_prompts(prompts_file_name, prompt_text_key="prompt", prompt_id_key="task_id"):
+def read_prompts(prompts_file_name, prompt_text_key="prompt", prompt_id_key="name"):
     """
     Reads the prompts from a jsonl file.
 
