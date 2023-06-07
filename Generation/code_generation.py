@@ -1,5 +1,6 @@
 import wandb
 import pickle
+import torch
 import argparse
 import jsonlines
 from tqdm import tqdm
@@ -160,6 +161,10 @@ def generate_outputs(
         }
     )
 
+    split_generations_into_batches = False
+    if generation_strategy.num_return_sequences > 50:
+        split_generations_into_batches = True
+
     # Generate outputs for each prompt
     for prompt_id, prompt_text, tests in tqdm(prompts):
         # track generation time using wandb
@@ -173,7 +178,33 @@ def generate_outputs(
         inputs = tokenizer(prompt_text, return_tensors="pt").to(device)
 
         # Generate the output
-        outputs = model.generate(**inputs, generation_config=generation_strategy)
+        if not split_generations_into_batches:
+            outputs = model.generate(**inputs, generation_config=generation_strategy)
+        else:
+            # Split the generations into batches of 50
+            outputs = []
+            size_of_batch = 50
+            num_of_batches = generation_strategy.num_return_sequences // size_of_batch
+            size_of_last_batch = generation_strategy.num_return_sequences % size_of_batch
+            updated_generation_strategy = generation_strategy
+            updated_generation_strategy.num_return_sequences = size_of_batch
+
+            for i in range(num_of_batches):
+                output = model.generate(
+                    **inputs, generation_config=updated_generation_strategy
+                )
+                outputs.append(output)
+
+            if size_of_last_batch != 0:
+                updated_generation_strategy.num_return_sequences = size_of_last_batch
+                output = model.generate(
+                    **inputs, generation_config=updated_generation_strategy
+                )
+                outputs.append(output)
+
+            outputs = torch.cat(outputs, dim=1)
+
+            
 
         # Remove prompt from the output
         outputs = remove_prompt(outputs, inputs["input_ids"])
