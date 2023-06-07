@@ -83,6 +83,7 @@ def get_parser_object_for_code_generation_script():
 def generate_outputs(
     prompts,
     model_name,
+    lang,
     tokenizer_name=None,
     generation_strategy=None,
     stop_tokens=None,
@@ -95,7 +96,7 @@ def generate_outputs(
     Generates outputs based on the given prompts using a language model.
 
     Args:
-        prompts (list[tuple(int, str)]): List of tuples containing prompt IDs and prompt texts.
+        prompts (list[tuple(int, str, str)]): List of tuples containing prompt IDs , prompt texts and prompt tests.
         model_name (str): Name of the model from the HuggingFace Transformer AutoModelForCausalLM.
         tokenizer_name (str, optional): Name of the tokenizer in HuggingFace. Default is None (same as model_name).
         generation_strategy (str, optional): HuggingFace generation config option. Default is None.
@@ -160,7 +161,7 @@ def generate_outputs(
     )
 
     # Generate outputs for each prompt
-    for prompt_id, prompt_text in tqdm(prompts):
+    for prompt_id, prompt_text, tests in tqdm(prompts):
         # track generation time using wandb
         start_time = datetime.now()
 
@@ -191,8 +192,13 @@ def generate_outputs(
         for i, decoded_output in enumerate(decoded_outputs):
             generations.append(
                 {
-                    "prompt_id": prompt_id,
-                    "prompt_text": prompt_text,
+                    "name": prompt_id,
+                    "language": lang,
+                    "temprature": generation_strategy.temperature,
+                    "top_p": generation_strategy.top_p,
+                    "max_new_tokens": generation_strategy.max_new_tokens,
+                    "prompt": prompt_text,
+                    "tests": tests,
                     "output_id": i,
                     "output_text": decoded_output,
                 }
@@ -253,23 +259,27 @@ def stop_at_stop_token(decoded_string, stop_tokens):
             min_stop_index = stop_index
     return decoded_string[:min_stop_index]
 
-def read_prompts(prompts_file_name, prompt_text_key="prompt", prompt_id_key="name"):
+def read_prompts(prompts_file_name, prompt_text_key="prompt", prompt_id_key="name", prompt_test_key="tests"):
     """
     Reads the prompts from a jsonl file.
 
     Args:
         prompts_file_name (str): Name of the prompts file in jsonl
         format.
+        prompt_text_key (str, optional): Name of the prompt text key in the prompts file. Default is 'prompt'.
+        prompt_id_key (str, optional): Name of the prompt ID key in the prompts file. Default is 'task_id'.
+        prompt_test_key (str, optional): Name of the prompt test key in the prompts file. Default is 'tests'.
 
     Returns:
-        list[tuple(int, str)]: List of tuples containing prompt IDs and prompt texts.
+        list[tuple(int, str, str)]: List of tuples containing prompt IDs , prompt texts and prompt tests.
     """
     prompts = []
     with jsonlines.open(prompts_file_name) as reader:
         for prompt in reader:
             prompt_id = prompt[prompt_id_key]
             prompt_text = prompt[prompt_text_key]
-            prompts.append((prompt_id, prompt_text))
+            prompt_test = prompt[prompt_test_key]
+            prompts.append((prompt_id, prompt_text, prompt_test))
     return prompts
 
 
@@ -280,6 +290,9 @@ def main():
 
     # Read the prompts
     prompts = read_prompts(args.prompts_file_name, args.prompt_text_key, args.prompt_id_key)
+
+    #Extract programming language from prompts file name (e.g. prompts_py.jsonl)
+    lang = args.prompts_file_name.split("_")[1].split(".")[0]
 
     # Split the stop tokens
     if args.stop_tokens != None:
@@ -296,6 +309,7 @@ def main():
     generated_outputs = generate_outputs(
         prompts,
         args.model_name,
+        lang,
         args.tokenizer_name,
         args.generation_strategy,
         stop_tokens,
