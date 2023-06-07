@@ -23,6 +23,8 @@ import itertools
 import argparse
 from multipl_e.util import gunzip_json, eprint
 import json
+import pprint
+
 
 def estimator(n: int, c: int, k: int) -> float:
     """
@@ -56,11 +58,7 @@ def main():
         "min_completions": None,
         "max_completions": None,
     }
-    results_dict = {
-        "pass@1": res_holder,
-        "pass@10": res_holder,
-        "pass@100": res_holder,
-    }
+    results_dict = {}
     parser = argparse.ArgumentParser()
     parser.add_argument("--suppress-header", action="store_true", help="Suppress the header")
     parser.add_argument("dirs", type=str,  help="Directories with results. ", nargs="+")
@@ -108,7 +106,7 @@ def main():
         else:
             raise ValueError(f"Unexpected temperature: {temperature}")
         
-    print(results_dict)
+    print(json.dumps(results_dict, indent=4))
     
     if args.output is not None:
         with open(args.output, "w") as f:
@@ -120,6 +118,75 @@ def main():
         
         print("Saved results to results_dict.json")
     
+
+def main():
+    res_holder= {
+        "dataset": None,
+        "pass@k": None,
+        "estimate": None,
+        "num_problems": None,
+        "min_completions": None,
+        "max_completions": None,
+    }
+    
+    results_dict = {}
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--suppress-header", action="store_true", help="Suppress the header")
+    parser.add_argument("dirs", type=str,  help="Directories with results. ", nargs="+")
+    parser.add_argument("--output", type=str, help="Output file")
+    args = parser.parse_args()
+    if not args.suppress_header:
+        print("Dataset,Pass@k,Estimate,NumProblems,MinCompletions,MaxCompletions")
+    for d in args.dirs:
+        results = [ for_file(p) for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")) ]
+        results = [ r for r in results if r is not None ]
+        name = d.split("/")[-1] if d.split("/")[-1] != "" else d.split("/")[-2]
+        temperatures = set(r["temperature"] for r in results)
+        if len(temperatures) != 1:
+            eprint(f"Found multiple temperatures {temperatures} in {d} {results}")
+            continue
+        temperature = list(temperatures)[0]
+        num_problems = len(results)
+        min_completions = np.min([r["n"] for r in results])
+        max_completions = np.max([r["n"] for r in results])
+        if temperature == 0.2:
+            pass_1 = np.mean([r["pass@1"] for r in results])
+            print(f"{name},1,{pass_1},{num_problems},{min_completions},{max_completions}")
+            res_holder["dataset"] = name
+            res_holder["pass@k"] = 1
+            results_dict["pass@1"] = res_holder
+        elif temperature == 0.8:
+            pass_10 = np.mean([r["pass@10"] for r in results])
+            pass_100 = np.mean([r["pass@100"] for r in results])
+            print(f"{name},10,{pass_10},{num_problems},{min_completions},{max_completions}")
+            print(f"{name},100,{pass_100},{num_problems},{min_completions},{max_completions}")
+            res_holder["dataset"] = name
+            res_holder["pass@k"] = 10
+            res_holder["estimate"] = float(pass_1)
+            res_holder["num_problems"] = int(num_problems)
+            res_holder["min_completions"] = int(min_completions)
+            res_holder["max_completions"] = int(max_completions)
+            results_dict["pass@10"] = res_holder
+            res_holder["pass@k"] = 100
+            res_holder["estimate"] = float(pass_100)
+            results_dict["pass@100"] = res_holder
+        else:
+            raise ValueError(f"Unexpected temperature: {temperature}")
+        
+    
+    #pretty print results_dict
+    pprint.pprint(results_dict)
+    
+    output_file = "results_dict.json"
+    if args.output is not None:
+        output_file = args.output
+
+    with open(output_file, "w") as f:
+        json.dump(results_dict, f)
+    print(f"Saved results to {output_file}")
+    
+    
+
 
 if __name__ == "__main__":
     main()
