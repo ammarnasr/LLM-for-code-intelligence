@@ -74,7 +74,7 @@ def get_parser_object_for_code_generation_script():
     parser.add_argument(
         "--prompt_id_key",
         type=str,
-        default="task_id",
+        default="name",
         help="Name of the prompt ID key in the prompts file. Default is 'task_id'.",
     )
 
