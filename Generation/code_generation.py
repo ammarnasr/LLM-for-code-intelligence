@@ -199,6 +199,7 @@ def generate_outputs(
                     "max_new_tokens": generation_strategy.max_new_tokens,
                     "prompt": prompt_text,
                     "tests": tests,
+                    "stop_tokens": stop_tokens,
                     "output_id": i,
                     "output_text": decoded_output,
                 }
