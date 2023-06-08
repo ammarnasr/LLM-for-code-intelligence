@@ -406,6 +406,7 @@ def generate_outputs(
     # Generate outputs for each prompt
     for prompt_id, prompt_text, tests in tqdm(prompts, unit="prompt"):
         if prompt_processed(prompt_id, output_file_name, lang):
+            print(f"Prompt {prompt_id} already processed. Skipping...")
             continue
         start_time = datetime.now()
         generation_strategy = GenerationConfig.from_pretrained("generation_strategy_temp")
