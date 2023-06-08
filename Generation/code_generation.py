@@ -386,6 +386,7 @@ def generate_outputs(
     for prompt_id, prompt_text, tests in tqdm(prompts, unit="prompt"):
         start_time = datetime.now()
         generation_strategy = GenerationConfig.from_pretrained("generation_strategy_temp")
+        generation_strategy.max_new_tokens = 500
 
         # Prepend the prefix instruction to the prompt text
         if prefix_instruction:
