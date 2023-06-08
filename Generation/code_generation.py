@@ -256,7 +256,8 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
 
     # if running in Google Colab, save the file to Google Drive folder 'generated_code'
     if in_colab:
-        !cp $output_file_name "/content/drive/MyDrive/generated_code/"
+        import shutil
+        shutil.copy(output_file_name, "/content/drive/MyDrive/generated_code")
 
 
     return generations
