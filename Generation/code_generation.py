@@ -227,7 +227,7 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
             {
                 "name": prompt_id,
                 "language": lang,
-                "temprature": generation_strategy.temperature,
+                "temperature": generation_strategy.temperature,
                 "top_p": generation_strategy.top_p,
                 "max_new_tokens": generation_strategy.max_new_tokens,
                 "prompt": prompt_text,
