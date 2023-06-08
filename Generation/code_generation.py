@@ -314,6 +314,27 @@ def read_prompts(prompts_file_name, prompt_text_key="prompt", prompt_id_key="nam
     return prompts
 
 
+def prompt_processed(prompt_id, output_file_name, lang):
+    """
+    Checks if the prompt is already processed.
+
+    Args:
+        prompt_id (str): Prompt ID.
+        output_file_name (str): Name of the output file.
+
+    Returns:
+        bool: True if prompt is already processed, False otherwise.
+    """
+    if output_file_name == None:
+        todays_date = datetime.today().strftime("%Y-%m-%d")
+        output_file_name = f"{lang}-{todays_date}.jsonl"
+    if os.path.exists(output_file_name):
+        with jsonlines.open(output_file_name) as reader:
+            for generation in reader:
+                if generation["name"] == prompt_id:
+                    return True
+    return False
+
 def generate_outputs(
     prompts,
     model_name,
@@ -384,6 +405,8 @@ def generate_outputs(
 
     # Generate outputs for each prompt
     for prompt_id, prompt_text, tests in tqdm(prompts, unit="prompt"):
+        if prompt_processed(prompt_id, output_file_name, lang):
+            continue
         start_time = datetime.now()
         generation_strategy = GenerationConfig.from_pretrained("generation_strategy_temp")
         generation_strategy.max_new_tokens = 500
