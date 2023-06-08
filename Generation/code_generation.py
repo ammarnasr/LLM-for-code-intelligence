@@ -480,6 +480,7 @@ def main():
     in_colab = False
     if os.getcwd().startswith("/content"):
         in_colab = True
+        print("Running in Google Colab")
 
 
     # Print the Arguments
