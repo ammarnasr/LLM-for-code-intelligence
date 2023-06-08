@@ -203,7 +203,7 @@ def batched_sampling_from_model(model, inputs, generation_strategy, max_num_retu
     return outputs
 
         
-def store_output(generations, decoded_outputs, generation_strategy, prompt_id, prompt_text, tests, stop_tokens, lang, output_file_name):
+def store_output(generations, decoded_outputs, generation_strategy, prompt_id, prompt_text, tests, stop_tokens, lang, output_file_name, in_colab):
     """
     Stores the output in the generations list.
 
@@ -217,6 +217,7 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
         stop_tokens (list[str]): List of strings representing stop tokens.
         lang (str): Programming language.
         output_file_name (str): Name of the output file.
+        in_colab (bool): True if running in Google Colab, False otherwise.
 
 
     Returns:
@@ -252,6 +253,10 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
         with jsonlines.open(output_file_name, "w") as writer:
             for generation in generations:
                 writer.write(generation)
+
+    # if running in Google Colab, save the file to Google Drive folder 'generated_code'
+    if in_colab:
+        !cp $output_file_name "/content/drive/MyDrive/generated_code/"
 
 
     return generations
@@ -347,6 +352,7 @@ def generate_outputs(
     device="cpu",
     wandb_project_name=None,
     max_num_return_sequences=50,
+    in_colab=False,
 ):
     """
     Generates outputs based on the given prompts using a language model.
@@ -432,7 +438,7 @@ def generate_outputs(
         decoded_outputs = [stop_at_stop_token(decoded_output, stop_tokens) for decoded_output in decoded_outputs]
 
         # Store the output
-        generations = store_output(generations, decoded_outputs, generation_strategy, prompt_id, prompt_text, tests, stop_tokens, lang, output_file_name)
+        generations = store_output(generations, decoded_outputs, generation_strategy, prompt_id, prompt_text, tests, stop_tokens, lang, output_file_name, in_colab)
 
         # Log generation time using wandb
         wandb.log({"generation_time": (datetime.now() - start_time).total_seconds()})
@@ -470,9 +476,16 @@ def main():
         with open('stop_tokens.pkl', 'rb') as f:
             stop_tokens = pickle.load(f)
 
+    #Check if the cwd starts with /content
+    in_colab = False
+    if os.getcwd().startswith("/content"):
+        in_colab = True
+
+
     # Print the Arguments
     print("Starting the code generation with the following arguments:")
     print(args)
+
 
     # Generate outputs
     generated_outputs = generate_outputs(
@@ -487,6 +500,7 @@ def main():
         args.device,
         args.wandb_project_name,
         args.batch_size,
+        in_colab,
     )
 
     # Print the generated outputs
