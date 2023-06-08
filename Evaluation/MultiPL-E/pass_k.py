@@ -24,7 +24,10 @@ import argparse
 from multipl_e.util import gunzip_json, eprint
 import json
 import pprint
-
+import glob
+from os import listdir
+from os.path import isfile, join
+import os
 
 def estimator(n: int, c: int, k: int) -> float:
     """
@@ -38,7 +41,7 @@ def estimator(n: int, c: int, k: int) -> float:
 def for_file(path):
     data = gunzip_json(path)
     if data is None:
-      return None   
+      return None
     n = len(data["results"])
     c = len([True for r in data["results"] if r["status"] == "OK" and r["exit_code"] == 0])
     return {
@@ -49,77 +52,9 @@ def for_file(path):
         "temperature": data["temperature"] if "temperature" in data else 0.2
     }
 
-def main():
-    res_holder= {
-        "dataset": None,
-        "pass@k": None,
-        "estimate": None,
-        "num_problems": None,
-        "min_completions": None,
-        "max_completions": None,
-    }
-    results_dict = {}
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--suppress-header", action="store_true", help="Suppress the header")
-    parser.add_argument("dirs", type=str,  help="Directories with results. ", nargs="+")
-    parser.add_argument("--output", type=str, help="Output file")
-    args = parser.parse_args()
-    if not args.suppress_header:
-        print("Dataset,Pass@k,Estimate,NumProblems,MinCompletions,MaxCompletions")
-    for d in args.dirs:
-        results = [ for_file(p) for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")) ]
-        results = [ r for r in results if r is not None ]
-        name = d.split("/")[-1] if d.split("/")[-1] != "" else d.split("/")[-2]
-        temperatures = set(r["temperature"] for r in results)
-        if len(temperatures) != 1:
-            eprint(f"Found multiple temperatures {temperatures} in {d} {results}")
-            continue
-        temperature = list(temperatures)[0]
-        num_problems = len(results)
-        min_completions = np.min([r["n"] for r in results])
-        max_completions = np.max([r["n"] for r in results])
-        if temperature == 0.2:
-            pass_1 = np.mean([r["pass@1"] for r in results])
-            print(f"{name},1,{pass_1},{num_problems},{min_completions},{max_completions}")
-            res_holder["dataset"] = name
-            res_holder["pass@k"] = 1
-            res_holder["estimate"] = pass_1
-            res_holder["num_problems"] = num_problems
-            res_holder["min_completions"] = min_completions
-            res_holder["max_completions"] = max_completions
-            results_dict["pass@1"] = res_holder
-        elif temperature == 0.8:
-            pass_10 = np.mean([r["pass@10"] for r in results])
-            pass_100 = np.mean([r["pass@100"] for r in results])
-            print(f"{name},10,{pass_10},{num_problems},{min_completions},{max_completions}")
-            print(f"{name},100,{pass_100},{num_problems},{min_completions},{max_completions}")
-            res_holder["dataset"] = name
-            res_holder["pass@k"] = 10
-            res_holder["estimate"] = pass_10
-            res_holder["num_problems"] = num_problems
-            res_holder["min_completions"] = min_completions
-            res_holder["max_completions"] = max_completions
-            results_dict["pass@10"] = res_holder
-            res_holder["pass@k"] = 100
-            res_holder["estimate"] = pass_100
-            results_dict["pass@100"] = res_holder
-        else:
-            raise ValueError(f"Unexpected temperature: {temperature}")
-        
-    print(json.dumps(results_dict, indent=4))
-    
-    if args.output is not None:
-        with open(args.output, "w") as f:
-            json.dump(results_dict, f)
-        print(f"Saved results to {args.output}")
-    else:    
-        with open("results_dict.json", "w") as f:
-            json.dump(results_dict, f)
-        
-        print("Saved results to results_dict.json")
-    
 
-def main():
+
+def main(dirs = None, output = None, suppress_header = None):
     res_holder= {
         "dataset": None,
         "pass@k": None,
@@ -130,56 +65,84 @@ def main():
     }
     
     results_dict = {}
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--suppress-header", action="store_true", help="Suppress the header")
-    parser.add_argument("dirs", type=str,  help="Directories with results. ", nargs="+")
-    parser.add_argument("--output", type=str, help="Output file")
-    args = parser.parse_args()
-    if not args.suppress_header:
+    if dirs is None and output is None and suppress_header is None:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--suppress-header", action="store_true", help="Suppress the header")
+        parser.add_argument("dirs", type=str,  help="Directories with results. ", nargs="+")
+        parser.add_argument("--output", type=str, help="Output file")
+        args = parser.parse_args()
+        dirs = args.dirs
+        output = args.output
+        suppress_header = args.suppress_header
+
+    if not suppress_header:
         print("Dataset,Pass@k,Estimate,NumProblems,MinCompletions,MaxCompletions")
-    for d in args.dirs:
-        results = [ for_file(p) for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")) ]
-        results = [ r for r in results if r is not None ]
-        name = d.split("/")[-1] if d.split("/")[-1] != "" else d.split("/")[-2]
-        temperatures = set(r["temperature"] for r in results)
-        if len(temperatures) != 1:
-            eprint(f"Found multiple temperatures {temperatures} in {d} {results}")
-            continue
-        temperature = list(temperatures)[0]
-        num_problems = len(results)
-        min_completions = np.min([r["n"] for r in results])
-        max_completions = np.max([r["n"] for r in results])
-        if temperature == 0.2:
-            pass_1 = np.mean([r["pass@1"] for r in results])
-            print(f"{name},1,{pass_1},{num_problems},{min_completions},{max_completions}")
-            res_holder["dataset"] = name
-            res_holder["pass@k"] = 1
-            results_dict["pass@1"] = res_holder
-        elif temperature == 0.8:
-            pass_10 = np.mean([r["pass@10"] for r in results])
-            pass_100 = np.mean([r["pass@100"] for r in results])
-            print(f"{name},10,{pass_10},{num_problems},{min_completions},{max_completions}")
-            print(f"{name},100,{pass_100},{num_problems},{min_completions},{max_completions}")
-            res_holder["dataset"] = name
-            res_holder["pass@k"] = 10
-            res_holder["estimate"] = float(pass_1)
-            res_holder["num_problems"] = int(num_problems)
-            res_holder["min_completions"] = int(min_completions)
-            res_holder["max_completions"] = int(max_completions)
-            results_dict["pass@10"] = res_holder
-            res_holder["pass@k"] = 100
-            res_holder["estimate"] = float(pass_100)
-            results_dict["pass@100"] = res_holder
-        else:
-            raise ValueError(f"Unexpected temperature: {temperature}")
+    if type(dirs) == list:
+        d = dirs[0]
+    else:
+        d = dirs
+    
+    # results = [ for_file(p) for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")) ]
+    results = []
+
+    #print current working directory
+    cwd = os.getcwd()
+    print(f"cwd: {cwd}")
+
+
+    #list all files in the directory 
+    all_files = [f for f in listdir(cwd) ]
+    print(f"all_files: {all_files}")
+
+    for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")):
+        res = for_file(p)
+        if res is not None:
+            results.append(res)
+    results = [ r for r in results if r is not None ]
+    name = d.split("/")[-1] if d.split("/")[-1] != "" else d.split("/")[-2]
+    temperatures = set(r["temperature"] for r in results)
+    if len(temperatures) != 1:
+        eprint(f"Found multiple temperatures {temperatures} in {d} {results}")
+        raise ValueError(f"Unexpected temperature: {temperatures}")
+    temperature = list(temperatures)[0]
+    num_problems = len(results)
+    min_completions = np.min([r["n"] for r in results])
+    max_completions = np.max([r["n"] for r in results])
+    if temperature == 0.2:
+        pass_1 = np.mean([r["pass@1"] for r in results])
+        print(f"{name},1,{pass_1},{num_problems},{min_completions},{max_completions}")
+        res_holder["dataset"] = name
+        res_holder["pass@k"] = 1
+        res_holder["estimate"] = float(pass_1)
+        res_holder["num_problems"] = int(num_problems)
+        res_holder["min_completions"] = int(min_completions)
+        res_holder["max_completions"] = int(max_completions)
+        results_dict["pass@1"] = res_holder
+    elif temperature == 0.8:
+        pass_10 = np.mean([r["pass@10"] for r in results])
+        pass_100 = np.mean([r["pass@100"] for r in results])
+        print(f"{name},10,{pass_10},{num_problems},{min_completions},{max_completions}")
+        print(f"{name},100,{pass_100},{num_problems},{min_completions},{max_completions}")
+        res_holder["dataset"] = name
+        res_holder["pass@k"] = 10
+        res_holder["estimate"] = float(pass_1)
+        res_holder["num_problems"] = int(num_problems)
+        res_holder["min_completions"] = int(min_completions)
+        res_holder["max_completions"] = int(max_completions)
+        results_dict["pass@10"] = res_holder
+        res_holder["pass@k"] = 100
+        res_holder["estimate"] = float(pass_100)
+        results_dict["pass@100"] = res_holder
+    else:
+        raise ValueError(f"Unexpected temperature: {temperature}")
         
     
     #pretty print results_dict
     pprint.pprint(results_dict)
     
     output_file = "results_dict.json"
-    if args.output is not None:
-        output_file = args.output
+    if output is not None:
+        output_file = output
 
     with open(output_file, "w") as f:
         json.dump(results_dict, f)
@@ -189,4 +152,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    exp_name = 'codegen-350M-mon_pass100x200_py_bs50'
+    target_dir  = f'source_generations/{exp_name}'
+    output_file = f'source_generations/{exp_name}_results.json'
+
+    # pre
+    main(target_dir, output_file, suppress_header = False)

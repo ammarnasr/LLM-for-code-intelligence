@@ -1,0 +1,1 @@
+{"pass@10": {"dataset": "codegen350Mmon_pass100x200_py_bs50", "pass@k": 10, "estimate": 0.32062279091010276, "num_problems": 17, "min_completions": 200, "max_completions": 3400}, "pass@100": {"dataset": "codegen350Mmon_pass100x200_py_bs50", "pass@k": 100, "estimate": 0.4278139353110061, "num_problems": 17, "min_completions": 200, "max_completions": 3400}}

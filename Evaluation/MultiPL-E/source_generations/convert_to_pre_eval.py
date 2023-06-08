@@ -45,7 +45,7 @@ def convert_jsonl_structure(source_file, target_dir=None):
         prompt = json_data['prompt']
         name = json_data['name']
         language = json_data['language']
-        temprature = json_data['temprature']
+        temperature = json_data['temperature']
         top_p = json_data['top_p']
         max_new_tokens = json_data['max_new_tokens']
         tests = json_data['tests']
@@ -55,7 +55,7 @@ def convert_jsonl_structure(source_file, target_dir=None):
             target_data[name] = {
                 'prompt': prompt,
                 'language': language,
-                'temprature': temprature,
+                'temperature': temperature,
                 'top_p': top_p,
                 'max_new_tokens': max_new_tokens,
                 'tests': tests,
@@ -72,7 +72,15 @@ def convert_jsonl_structure(source_file, target_dir=None):
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
             target_file_name = f'{target_dir}/{name}.json.gz'
-        gzip_json(target_file_name, target_data[name])
+
+        # write the file using gzip
+        # gzip_json(target_file_name, target_data[name])
+
+        # write the file again without the .gz extension using json
+        target_file_name = target_file_name[:-3]
+        with open(target_file_name, 'w') as target_file:
+            json.dump(target_data[name], target_file)
+            
 
 # Usage example
 if __name__ == '__main__':
