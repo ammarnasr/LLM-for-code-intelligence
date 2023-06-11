@@ -137,9 +137,13 @@ def initialize_model_and_tokenizer(model_name, tokenizer_name=None, device="cpu"
     tokenizer.pad_token = tokenizer.eos_token
 
     if saved_model_path != None:
+        print(f"Loading model from Local Path: {saved_model_path}")
         model = AutoModelForCausalLM.from_pretrained(saved_model_path).to(device)
+        print(f"Loaded model from {saved_model_path}")
     else:
+        print(f"Loading model from HuggingFace: {model_name}")
         model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+        print(f"Loaded model {model_name}")
 
     return model, tokenizer
 
