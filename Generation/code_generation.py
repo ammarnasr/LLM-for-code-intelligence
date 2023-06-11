@@ -422,6 +422,9 @@ def generate_outputs(
             "prefix_instruction": prefix_instruction,
             "output_file_name": output_file_name,
             "device": device,
+            "wandb_project_name": wandb_project_name,
+            "max_num_return_sequences": max_num_return_sequences,
+            "saved_model_path": saved_model_path,
         }
     )
 
