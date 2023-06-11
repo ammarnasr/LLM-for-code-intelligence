@@ -86,6 +86,13 @@ def get_parser_object_for_code_generation_script():
         help="Batch size for generating outputs. Default is 50.",
     )
 
+    parser.add_argument(
+        "--saved_model_path",
+        type=str,
+        default=None,
+        help="Path to the saved model.",
+    )
+
     return parser
 
 
@@ -111,7 +118,7 @@ def initialize_wandb(model_name, wandb_project_name=None):
     wandb.init(project=wandb_project_name)
 
 
-def initialize_model_and_tokenizer(model_name, tokenizer_name=None, device="cpu"):
+def initialize_model_and_tokenizer(model_name, tokenizer_name=None, device="cpu", saved_model_path=None):
     """
     Initializes the model and tokenizer.
 
@@ -126,9 +133,13 @@ def initialize_model_and_tokenizer(model_name, tokenizer_name=None, device="cpu"
     
     if tokenizer_name == None:
         tokenizer_name = model_name
-    model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     tokenizer.pad_token = tokenizer.eos_token
+
+    if saved_model_path != None:
+        model = AutoModelForCausalLM.from_pretrained(saved_model_path).to(device)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
 
     return model, tokenizer
 
@@ -354,6 +365,7 @@ def generate_outputs(
     wandb_project_name=None,
     max_num_return_sequences=50,
     in_colab=False,
+    saved_model_path=None,
 ):
     """
     Generates outputs based on the given prompts using a language model.
@@ -377,7 +389,7 @@ def generate_outputs(
 
 
     # Load the model and tokenizer
-    model, tokenizer = initialize_model_and_tokenizer(model_name, tokenizer_name, device)
+    model, tokenizer = initialize_model_and_tokenizer(model_name, tokenizer_name, device, saved_model_path)
 
     # List to store generations
     generations = []
@@ -503,6 +515,7 @@ def main():
         args.wandb_project_name,
         args.batch_size,
         in_colab,
+        args.saved_model_path,
     )
 
     # Print the generated outputs
