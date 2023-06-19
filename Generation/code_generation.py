@@ -1,167 +1,24 @@
 import os
 import wandb
-import pickle
 import torch
-import argparse
 import jsonlines
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from datetime import datetime
-from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
+import shutil
+import utils
+import all_parse
 
-def get_parser_object_for_code_generation_script():
+def get_outputs_batch(model, inputs, gen_stratgey, batch_size):
     """
-    Returns the parser object for the code generation script.
+    Generates outputs based on the given prompts using a language model.
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--prompts_file_name",
-        type=str,
-        # default="humaneval_java.jsonl",
-        default="Generation/humaneval_python.jsonl",
-        help="Name of the prompts file in jsonl format.",
-    )
-    parser.add_argument(
-        "--model_name",
-        type=str,
-        default="gpt2",
-        help="Name of the model from the HuggingFace Transformer AutoModelForCausalLM.",
-    )
-    parser.add_argument(
-        "--tokenizer_name",
-        type=str,
-        default=None,
-        help="Name of the tokenizer in HuggingFace. Default is None (same as model_name).",
-    )
-    parser.add_argument(
-        "--generation_strategy",
-        type=str,
-        default=None,
-        help="HuggingFace generation config option. Default is None.",
-    )
-    parser.add_argument(
-        "--stop_tokens",
-        type=str,
-        default=None,
-        help="List of strings representing stop tokens. Default is None.",
-    )
-    parser.add_argument(
-        "--prefix_instruction",
-        type=str,
-        default=None,
-        help="String to be prepended to each prompt. Default is None.",
-    )
-    parser.add_argument(
-        "--output_file_name",
-        type=str,
-        default=None,
-        help="String of the output file name to save the results in jsonl format. Default is None.",
-    )
-    parser.add_argument(
-        "--device",
-        type=str,
-        default="cpu",
-        help="String of the device name. Default is 'cpu'.",
-    )
-    parser.add_argument(
-        "--wandb_project_name",
-        type=str,
-        default=None,
-        help="Name of the Weights & Biases project. Default is None.",
-    )
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=50,
-        help="Batch size for generating outputs. Default is 50.",
-    )
-
-    parser.add_argument(
-        "--saved_model_path",
-        type=str,
-        default=None,
-        help="Path to the saved model.",
-    )
-
-    return parser
+    updated_generation_strategy = gen_stratgey
+    updated_generation_strategy.num_return_sequences = batch_size
+    output = model.generate(**inputs, generation_config=updated_generation_strategy)
+    return output
 
 
-def initialize_wandb(model_name, wandb_project_name=None):
-    '''
-    Initializes Weights & Biases for logging the experiment parameters and outputs.
-
-    Args:
-        model_name (str): Name of the model from the HuggingFace Transformer AutoModelForCausalLM.
-        wandb_project_name (str, optional): Name of the Weights & Biases project. Default is None.
-
-    Returns:
-        None
-    '''
-    
-    # Initialize Weights & Biases
-    if wandb_project_name == None:
-        todays_date = datetime.today().strftime("%Y-%m-%d")
-        wandb_project_name = f"inference-{model_name}-{todays_date}"
-
-    # wanb project name cannot contain characters '/,\\,#,?,%,:'
-    wandb_project_name = wandb_project_name.replace("/", "-")
-    wandb.init(project=wandb_project_name)
-
-
-def initialize_model_and_tokenizer(model_name, tokenizer_name=None, device="cpu", saved_model_path=None):
-    """
-    Initializes the model and tokenizer.
-
-    Args:
-        model_name (str): Name of the model from the HuggingFace Transformer AutoModelForCausalLM.
-        tokenizer_name (str, optional): Name of the tokenizer in HuggingFace. Default is None (same as model_name).
-        device (str, optional): String of the device name. Default is 'cpu'.
-
-    Returns:
-        tuple(AutoModelForCausalLM, AutoTokenizer): Tuple of the model and tokenizer.
-    """
-    
-    if tokenizer_name == None:
-        tokenizer_name = model_name
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    tokenizer.pad_token = tokenizer.eos_token
-
-    if saved_model_path != None:
-        print(f"Loading model from Local Path: {saved_model_path}")
-        model = AutoModelForCausalLM.from_pretrained(saved_model_path).to(device)
-        print(f"Loaded model from {saved_model_path}")
-    else:
-        print(f"Loading model from HuggingFace: {model_name}")
-        model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
-        print(f"Loaded model {model_name}")
-
-    return model, tokenizer
-
-
-def initialize_generation_strategy(generation_strategy_name):
-    """
-    Initializes the generation strategy.
-
-    Args:
-        generation_strategy_name (str, optional): HuggingFace generation config option. Default is None.
-
-    Returns:
-        GenerationConfig: HuggingFace generation config object.
-    """ 
-    if generation_strategy_name == None:
-        generation_strategy = GenerationConfig(
-            do_sample=True,
-            top_p=0.95,
-            temperature=0.2,
-            num_return_sequences=1,
-            max_new_tokens=50,
-        )
-    else:
-        generation_strategy = GenerationConfig.from_pretrained(generation_strategy_name)
-
-    return generation_strategy
-        
-
-def batched_sampling_from_model(model, inputs, generation_strategy, max_num_return_sequences):
+def batched_sampling_from_model(model, inputs, generation_strategy, batch_size):
     """
     Generates outputs based on the given prompts using a language model.
 
@@ -170,31 +27,22 @@ def batched_sampling_from_model(model, inputs, generation_strategy, max_num_retu
         inputs (torch.Tensor): Input tensor.
         generation_strategy (GenerationConfig): HuggingFace generation config object.
         max_num_return_sequences (int): Maximum number of return sequences.
-
     Returns:
         torch.Tensor: Generated output tensor.
     """
-
     target_return_sequences = generation_strategy.num_return_sequences
-    split_generations_into_batches = max_num_return_sequences < target_return_sequences
-    if not split_generations_into_batches:
+    split_into_batches = False if batch_size >= target_return_sequences else True
+    if not split_into_batches:
             outputs = model.generate(**inputs, generation_config=generation_strategy)
     else:
-        # Split the generations into batches of 50
         outputs = []
-        size_of_batch = max_num_return_sequences
-        num_of_batches = target_return_sequences // size_of_batch
-        size_of_last_batch = target_return_sequences % size_of_batch
-
-        updated_generation_strategy = generation_strategy
-        updated_generation_strategy.num_return_sequences = size_of_batch
-
+        num_of_batches = target_return_sequences // batch_size
+        size_of_last_batch = target_return_sequences % batch_size
         for i in tqdm(range(num_of_batches), unit="batch"):
-            output = model.generate(**inputs, generation_config=updated_generation_strategy)
+            output = utils.get_outputs_batch(model, inputs, generation_strategy, batch_size)
             outputs.append(output)
             if size_of_last_batch != 0 and i == num_of_batches-1:
-                updated_generation_strategy.num_return_sequences = size_of_last_batch
-                output = model.generate(**inputs, generation_config=updated_generation_strategy)
+                output = get_outputs_batch(model, inputs, generation_strategy, size_of_last_batch)
                 outputs.append(output)
 
         #pad all the outputs to the length of the longest output
@@ -202,30 +50,13 @@ def batched_sampling_from_model(model, inputs, generation_strategy, max_num_retu
         pad_token_id = generation_strategy.pad_token_id
         for i, output in enumerate(outputs):
             outputs[i] = torch.nn.functional.pad(output, (0, max_length - output.shape[-1]), mode='constant', value=pad_token_id)
-        outputs = torch.cat(outputs, dim=0)
-    
+        outputs = torch.cat(outputs, dim=0) 
     return outputs
 
         
 def store_output(generations, decoded_outputs, generation_strategy, prompt_id, prompt_text, tests, stop_tokens, lang, output_file_name, in_colab):
     """
     Stores the output in the generations list.
-
-    Args:
-        generations (list[dict]): List of dictionaries containing prompt ID and corresponding generated output.
-        decoded_outputs (list[str]): List of decoded outputs.
-        generation_strategy (GenerationConfig): HuggingFace generation config object.
-        prompt_id (int): Prompt ID.
-        prompt_text (str): Prompt text.
-        tests (str): Prompt tests.
-        stop_tokens (list[str]): List of strings representing stop tokens.
-        lang (str): Programming language.
-        output_file_name (str): Name of the output file.
-        in_colab (bool): True if running in Google Colab, False otherwise.
-
-
-    Returns:
-        list[dict]: List of dictionaries containing prompt ID and corresponding generated output.
     """
     for i, decoded_output in enumerate(decoded_outputs):
         generations.append(
@@ -242,73 +73,71 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
                 "output_text": decoded_output,
             }
         )
-
-    if output_file_name == None:
-        todays_date = datetime.today().strftime("%Y-%m-%d")
-        output_file_name = f"{lang}-{todays_date}.jsonl"
-    
-
-    # if output_file_name exists, append the generations to the file, else create a new file
-    if os.path.exists(output_file_name):
-        with jsonlines.open(output_file_name, "a") as writer:
-            for generation in generations:
-                writer.write(generation)
-    else:
-        with jsonlines.open(output_file_name, "w") as writer:
-            for generation in generations:
-                writer.write(generation)
-
-    # if running in Google Colab, save the file to Google Drive folder 'generated_code'
+    utils.write_results_to_jsonl_file(generations, output_file_name)
     if in_colab:
-        import shutil
         shutil.copy(output_file_name, "/content/drive/MyDrive/generated_code")
-
-
     return generations
 
 
-def remove_prompt(outputs, inputs):
+def get_processed_prompt_ids(output_file_name):
     """
-    Removes the prompt from the outputs.
-
-    Args:
-        outputs (torch.Tensor): Generated output tensor.
-        inputs (torch.Tensor): Input tensor.
-
-    Returns:
-        torch.Tensor: Generated output tensor without the prompt.
+    Returns a list of prompt IDs that have already been processed.
     """
-    prompt_length = inputs.shape[-1]
-    return outputs[:, prompt_length:]
+    processed_prompt_ids = []
+    if os.path.exists(output_file_name):
+        with jsonlines.open(output_file_name) as reader:
+            for generation in reader:
+                processed_prompt_ids.append(generation["name"])
+
+    return processed_prompt_ids
 
 
-def stop_at_stop_token(decoded_string, stop_tokens):
-    """
-    Produces the prefix of decoded_string that ends at the first occurrence of
-    a stop_token.
+def process_prompt(model, tokenizer, generation_strategy, prompt_text, stop_tokens, batch_size, device):
+        """
+        Generates outputs based on the given prompts using a language model.
+        """
+        inputs = tokenizer(prompt_text, return_tensors="pt").to(device)
+        outputs = batched_sampling_from_model(model, inputs, generation_strategy, batch_size)
+        outputs = outputs[:, len(inputs["input_ids"][0]) :]
+        decoded_outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        decoded_outputs = [utils.stop_at_stop_token(decoded_output, stop_tokens) for decoded_output in decoded_outputs]
+        return decoded_outputs
 
-    WARNING: the decoded_string *must not* include the prompt, which may have stop tokens
-    itself.
-    """
-    if stop_tokens == None:
-        return decoded_string
-    min_stop_index = len(decoded_string)
-    for stop_token in stop_tokens:
-        stop_index = decoded_string.find(stop_token)
-        if stop_index != -1 and stop_index < min_stop_index:
-            min_stop_index = stop_index
-    return decoded_string[:min_stop_index]
+
+def init_generation(wandb_project_name, model_name, tokenizer_name, generation_strategy_name, output_file_name, device, batch_size):
+    # Initialize Weights & Biases
+    utils.initialize_wandb(wandb_project_name)
+    # Load the model and tokenizer ang generation strategy
+    model = utils.initialize_causual_model_from_huffingface(model_name)
+    model = model.to(device)
+    tokenizer = utils.initialize_tokenizer_from_huggingface(tokenizer_name)
+    generation_strategy = utils.initialize_generation_strategy(generation_strategy_name)
+    generation_strategy.pad_token_id = tokenizer.pad_token_id
+    generation_strategy.max_new_tokens = 500
+    # List to store generations
+    generations = []
+    # Get the processed prompt IDs
+    processed_prompt_ids = get_processed_prompt_ids(output_file_name)
+    # Log Experiment parameters
+    wandb.config.update(
+        {
+            "model_name": model_name,
+            "tokenizer_name": tokenizer_name,
+            "generation_strategy_name": generation_strategy_name,
+            "output_file_name": output_file_name,
+            "device": device,
+            "batch_size": batch_size,
+        }
+    )
+    return model, tokenizer, generation_strategy, generations, processed_prompt_ids
 
 
 def read_prompts(prompts_file_name):
     """
     Reads the prompts from a jsonl file.
-
     Args:
         prompts_file_name (str): Name of the prompts file in jsonl
         format.
-        
-
     Returns:
         list[tuple(int, str, str, list[str])]: List of tuples containing prompt IDs , prompt texts and prompt tests.
     """
@@ -323,45 +152,9 @@ def read_prompts(prompts_file_name):
     return prompts
 
 
-def prompt_processed(prompt_id, output_file_name, lang):
-    """
-    Checks if the prompt is already processed.
-
-    Args:
-        prompt_id (str): Prompt ID.
-        output_file_name (str): Name of the output file.
-
-    Returns:
-        bool: True if prompt is already processed, False otherwise.
-    """
-    if output_file_name == None:
-        todays_date = datetime.today().strftime("%Y-%m-%d")
-        output_file_name = f"{lang}-{todays_date}.jsonl"
-    if os.path.exists(output_file_name):
-        with jsonlines.open(output_file_name) as reader:
-            for generation in reader:
-                if generation["name"] == prompt_id:
-                    return True
-    return False
-
-def generate_outputs(
-    prompts,
-    model_name,
-    lang,
-    tokenizer_name=None,
-    generation_strategy_name=None,
-    stop_tokens=None,
-    prefix_instruction=None,
-    output_file_name=None,
-    device="cpu",
-    wandb_project_name=None,
-    max_num_return_sequences=50,
-    in_colab=False,
-    saved_model_path=None,
-):
+def generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strategy_name, stop_tokens, output_file_name, device, wandb_project_name, batch_size, in_colab):
     """
     Generates outputs based on the given prompts using a language model.
-
     Args:
         prompts (list[tuple(int, str, str)]): List of tuples containing prompt IDs , prompt texts and prompt tests.
         model_name (str): Name of the model from the HuggingFace Transformer AutoModelForCausalLM.
@@ -371,163 +164,81 @@ def generate_outputs(
         prefix_instruction (str, optional): String to be prepended to each prompt. Default is None.
         output_file_name (str, optional): String of the output file name to save the results in jsonl format. Default is None.
         device (str, optional): String of the device name. Default is 'cpu'.
-
     Returns:
         list[dict]: List of dictionaries containing prompt ID and corresponding generated output.
     """
 
-    # Initialize Weights & Biases
-    initialize_wandb(model_name, wandb_project_name)
-
-
-    # Load the model and tokenizer
-    model, tokenizer = initialize_model_and_tokenizer(model_name, tokenizer_name, device, saved_model_path)
-
-    # List to store generations
-    generations = []
-
-    # Set the generation strategy
-    generation_strategy = initialize_generation_strategy(generation_strategy_name)
-
-    # Set the pad token id
-    generation_strategy.pad_token_id = tokenizer.pad_token_id
-
-    # Save the generation strategy
-    generation_strategy.save_pretrained("generation_strategy_temp")
-
-    # Log Experiment parameters
-    wandb.config.update(
-        {
-            "model_name": model_name,
-            "tokenizer_name": tokenizer_name,
-            "do_sample": generation_strategy.do_sample,
-            "top_p": generation_strategy.top_p,
-            "temperature": generation_strategy.temperature,
-            "num_return_sequences": generation_strategy.num_return_sequences,
-            "max_new_tokens": generation_strategy.max_new_tokens,
-            "pad_token_id": generation_strategy.pad_token_id,
-            "stop_tokens": stop_tokens,
-            "prefix_instruction": prefix_instruction,
-            "output_file_name": output_file_name,
-            "device": device,
-            "wandb_project_name": wandb_project_name,
-            "max_num_return_sequences": max_num_return_sequences,
-            "saved_model_path": saved_model_path,
-        }
-    )
-
-
-    # Generate outputs for each prompt
-    for prompt_id, prompt_text, tests in tqdm(prompts, unit="prompt"):
-        if prompt_processed(prompt_id, output_file_name, lang):
+    model, tokenizer, generation_strategy, generations, processed_prompt_ids = init_generation(wandb_project_name, model_name, tokenizer_name, generation_strategy_name, output_file_name, device, batch_size)
+    prompts_tbar = tqdm(prompts, unit="prompt")
+    for prompt_id, prompt_text, tests in prompts_tbar:
+        if prompt_id in processed_prompt_ids:
             print(f"Prompt {prompt_id} already processed. Skipping...")
             continue
         start_time = datetime.now()
-        generation_strategy = GenerationConfig.from_pretrained("generation_strategy_temp")
-        generation_strategy.max_new_tokens = 500
-
-        # Prepend the prefix instruction to the prompt text
-        if prefix_instruction:
-            prompt_text = prefix_instruction + prompt_text
-
-        # Encode the input text
-        inputs = tokenizer(prompt_text, return_tensors="pt").to(device)
-
-        # Generate the output
-        outputs = batched_sampling_from_model(model, inputs, generation_strategy, max_num_return_sequences)
-        
-        # Remove prompt from the output
-        outputs = remove_prompt(outputs, inputs["input_ids"])
-
-        # Decode the output
-        decoded_outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-
-        # Stop at stop tokens
-        decoded_outputs = [stop_at_stop_token(decoded_output, stop_tokens) for decoded_output in decoded_outputs]
-
-        # Store the output
+        decoded_outputs = process_prompt(model, tokenizer, generation_strategy, prompt_text, stop_tokens, batch_size, device)
         generations = store_output(generations, decoded_outputs, generation_strategy, prompt_id, prompt_text, tests, stop_tokens, lang, output_file_name, in_colab)
 
         # Log generation time using wandb
         wandb.log({"generation_time": (datetime.now() - start_time).total_seconds()})
-
-
-    # Save the outputs to a jsonl file
-    if output_file_name == None:
-        todays_date = datetime.today().strftime("%Y-%m-%d")
-        output_file_name = f"{model_name}-{todays_date}.jsonl"
-    with jsonlines.open(output_file_name, "w") as writer:
-        for generation in generations:
-            writer.write(generation)
-
-    # Log outputs using Weights & Biases
-    wandb.log({"generations": generations})
-
+        wandb.log({"prompt_id": prompt_id})
     return generations
 
 
-def main():
-    # Get inputs from arguments
-    parser = get_parser_object_for_code_generation_script()
-    args = parser.parse_args()
+def main(args_dict=None):
 
-    # Read the prompts
-    prompts = read_prompts(args.prompts_file_name)
+    if args_dict is None:
+        parser = all_parse.get_parser_object_for_code_generation_script()
+        args = parser.parse_args()
+        prompts_file_name = args.prompts_file_name
+        model_name = args.model_name
+        tokenizer_name = args.tokenizer_name
+        generation_strategy_name = args.generation_strategy
+        output_file_name = args.output_file_name
+        device = args.device
+        wandb_project_name = args.wandb_project_name
+        batch_size = args.batch_size
 
-    #Extract programming language from prompts file name (e.g. prompts_py.jsonl)
-    lang = args.prompts_file_name.split("_")[1].split(".")[0]
-
-    # Split the stop tokens
-    if args.stop_tokens != None:
-        stop_tokens = args.stop_tokens.split(",")
     else:
-        sample_prompt = prompts[0]
-        stop_tokens = sample_prompt[3]
+        prompts_file_name = args_dict["prompts_file_name"]
+        model_name = args_dict["model_name"]
+        tokenizer_name = args_dict["tokenizer_name"]
+        generation_strategy_name = args_dict["generation_strategy"]
+        output_file_name = args_dict["output_file_name"]
+        wandb_project_name = args_dict["wandb_project_name"]
+        batch_size = args_dict["batch_size"]
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    #Check if the cwd starts with /content
+    
+    prompts = read_prompts(prompts_file_name)
+    lang = prompts_file_name.split("_")[1].split(".")[0]
+    stop_tokens = prompts[0][3]
     in_colab = False
     if os.getcwd().startswith("/content"):
         in_colab = True
         print("Running in Google Colab")
-
-
-    # Print the Arguments
     print("Starting the code generation with the following arguments:")
-    print(args)
+    if args_dict is None:
+        print(args)
+    else:
+        print(args_dict)
+    
 
 
     # Generate outputs
-    generated_outputs = generate_outputs(
-        prompts,
-        args.model_name,
-        lang,
-        args.tokenizer_name,
-        args.generation_strategy,
-        stop_tokens,
-        args.prefix_instruction,
-        args.output_file_name,
-        args.device,
-        args.wandb_project_name,
-        args.batch_size,
-        in_colab,
-        args.saved_model_path,
-    )
-
-    # Print the generated outputs
-    for generated_output in generated_outputs:
-        print(generated_output)
+    generated_outputs = generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strategy_name, stop_tokens, output_file_name, device, wandb_project_name, batch_size, in_colab )
+    print("Code generation completed successfully.")
 
 if __name__ == "__main__":
     main()
 
-    # Example command:
-    # python code_generation.py --prompts_file_name "prompts.jsonl" --model_name "gpt2" --tokenizer_name "gpt2" --generation_strategy "top_p" --stop_tokens "['\n']" --prefix_instruction "def foo(x):\n\t" --output_file_name "generated_outputs.jsonl" --device "cpu" --wandb_project_name "inference-gpt2-2021-08-10" --prompt_text_key "prompt" --prompt_id_key "task_id"
-
-    # First install the requirements using the following command:
-    # pip install -r requirements.txt
-
-    # Then login to Weights & Biases using the following command:
-    # wandb login
-
-    # Then login to HuggingFace using the following command:
-    # transformers-cli login
+    # Or you can run the code with args_dict as follows:
+    # args_dict = {
+    #     "prompts_file_name": "Generation/humaneval_python.jsonl",
+    #     "model_name": "gpt2",
+    #     "tokenizer_name": None,
+    #     "generation_strategy": None,
+    #     "output_file_name": "Generation/gpt2_humaneval_python.jsonl",
+    #     "wandb_project_name": "code-generation",
+    #     "batch_size": 1,
+    # }
+    # main(args_dict)
