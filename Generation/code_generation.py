@@ -39,7 +39,7 @@ def batched_sampling_from_model(model, inputs, generation_strategy, batch_size):
         num_of_batches = target_return_sequences // batch_size
         size_of_last_batch = target_return_sequences % batch_size
         for i in tqdm(range(num_of_batches), unit="batch"):
-            output = utils.get_outputs_batch(model, inputs, generation_strategy, batch_size)
+            output = get_outputs_batch(model, inputs, generation_strategy, batch_size)
             outputs.append(output)
             if size_of_last_batch != 0 and i == num_of_batches-1:
                 output = get_outputs_batch(model, inputs, generation_strategy, size_of_last_batch)
