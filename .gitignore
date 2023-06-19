@@ -5,3 +5,5 @@ checkpoits/*/
 checkpoints
 runs
 *.pkl
+wandb
+__pycache__

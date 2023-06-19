@@ -170,7 +170,7 @@ def generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strat
 
     model, tokenizer, generation_strategy, generations, processed_prompt_ids = init_generation(wandb_project_name, model_name, tokenizer_name, generation_strategy_name, output_file_name, device, batch_size)
     prompts_tbar = tqdm(prompts, unit="prompt")
-    for prompt_id, prompt_text, tests,_ in prompts_tbar:
+    for prompt_id, prompt_text, tests, st in prompts_tbar:
         if prompt_id in processed_prompt_ids:
             print(f"Prompt {prompt_id} already processed. Skipping...")
             continue
@@ -233,12 +233,18 @@ if __name__ == "__main__":
 
     # Or you can run the code with args_dict as follows:
     # args_dict = {
-    #     "prompts_file_name": "Generation/humaneval_python.jsonl",
-    #     "model_name": "gpt2",
-    #     "tokenizer_name": None,
-    #     "generation_strategy": None,
-    #     "output_file_name": "Generation/gpt2_humaneval_python.jsonl",
-    #     "wandb_project_name": "code-generation",
-    #     "batch_size": 1,
+    # "prompts_file_name": "Generation/humaneval_py.jsonl",
+
+    # "model_name": "Salesforce/codegen-350M-mono",
+
+    # "tokenizer_name":"Salesforce/codegen-350M-mono",
+
+    # "generation_strategy": "ammarnasr/pass_at_1_gen_config",
+
+    # "output_file_name": "test.jsonl",
+
+    # "wandb_project_name": "testname",
+
+    # "batch_size": 20,
     # }
     # main(args_dict)
