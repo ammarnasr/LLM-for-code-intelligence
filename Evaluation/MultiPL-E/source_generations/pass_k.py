@@ -62,7 +62,7 @@ def for_file(path):
 
 
 
-def main(dirs = None, output = None, suppress_header = None):
+def main(dirs = None, output = None):
     res_holder= {
         "dataset": None,
         "pass@k": None,
@@ -73,18 +73,15 @@ def main(dirs = None, output = None, suppress_header = None):
     }
     
     results_dict = {}
-    if dirs is None and output is None and suppress_header is None:
+    if dirs is None and output is None :
         parser = argparse.ArgumentParser()
-        parser.add_argument("--suppress-header", action="store_true", help="Suppress the header")
         parser.add_argument("dirs", type=str,  help="Directories with results. ", nargs="+")
         parser.add_argument("--output", type=str, help="Output file")
         args = parser.parse_args()
         dirs = args.dirs
         output = args.output
-        suppress_header = args.suppress_header
 
-    if not suppress_header:
-        print("Dataset,Pass@k,Estimate,NumProblems,MinCompletions,MaxCompletions")
+    print("Dataset,Pass@k,Estimate,NumProblems,MinCompletions,MaxCompletions")
     if type(dirs) == list:
         d = dirs[0]
     else:
@@ -93,10 +90,17 @@ def main(dirs = None, output = None, suppress_header = None):
     # results = [ for_file(p) for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")) ]
     results = []
 
+    print(f"Reading results from {d}...")
+    print(f"And saving results to {output}...")
+
     for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")):
         res = for_file(p)
         if res is not None:
             results.append(res)
+
+    print(f"Read {len(results)} results")
+    print(f"Sample result: {results[0]}")
+    
     results = [ r for r in results if r is not None ]
     name = d.split("/")[-1] if d.split("/")[-1] != "" else d.split("/")[-2]
     temperatures = set(r["temperature"] for r in results)
@@ -162,5 +166,8 @@ if __name__ == "__main__":
     target_dir  = f'{exp_name}'
     output_file = f'{exp_name}_results.json'
 
-    # pre
-    main(target_dir, output_file, suppress_header = False)
+    if len(os.sys.argv) > 1:
+        main()
+
+    else:
+        main(target_dir, output_file)

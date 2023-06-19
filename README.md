@@ -1,5 +1,27 @@
 # LLM-for-code-intelligence
-large language models for code intelligence - Msc Project
+Fine Tuning Large Language Models for Code Intelligence - Msc Project
+
+## Todo List 19/06 - 25/06
+- [ ] Document Current Challenges, Progress and Next Steps to progress\README.md
+- [x] Identify Relevant Literature
+- [ ] Read Identified Literature and summarise to lit-rev\README.md (Ongoing)
+- [ ] Identify Relevant Datasets
+- [ ] Document Identified Datasets to lit-rev\README.md
+- [ ] Identify Relevant Evaluation Metrics
+- [ ] Document Identified Evaluation Metrics to lit-rev\README.md
+- [ ] Setup the code generation environment
+- [ ] Document the code generation environment setup
+- [ ] Setup the functional evaluation environment
+- [ ] Document the functional evaluation environment setup
+- [ ] Setup the similarity evaluation environment
+- [ ] Document the similarity evaluation environment setup
+- [ ] Setup the Full Fine Tuning environment
+- [ ] Document the Full Fine Tuning environment setup
+- [ ] Setup the Parameter Efficient Fine Tuning environment
+- [ ] Document the Parameter Efficient Fine Tuning environment setup
+- [ ] Setup the Knowledge Distillation environment
+- [ ] Document the Knowledge Distillation environment setup
+
 
 
 

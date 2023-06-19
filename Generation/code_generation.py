@@ -16,7 +16,8 @@ def get_parser_object_for_code_generation_script():
     parser.add_argument(
         "--prompts_file_name",
         type=str,
-        default="prompts.jsonl",
+        # default="humaneval_java.jsonl",
+        default="Generation/humaneval_python.jsonl",
         help="Name of the prompts file in jsonl format.",
     )
     parser.add_argument(
@@ -66,18 +67,6 @@ def get_parser_object_for_code_generation_script():
         type=str,
         default=None,
         help="Name of the Weights & Biases project. Default is None.",
-    )
-    parser.add_argument(
-        "--prompt_text_key",
-        type=str,
-        default="prompt",
-        help="Name of the prompt text key in the prompts file. Default is 'prompt'.",
-    )
-    parser.add_argument(
-        "--prompt_id_key",
-        type=str,
-        default="name",
-        help="Name of the prompt ID key in the prompts file. Default is 'task_id'.",
     )
     parser.add_argument(
         "--batch_size",
@@ -311,27 +300,26 @@ def stop_at_stop_token(decoded_string, stop_tokens):
     return decoded_string[:min_stop_index]
 
 
-def read_prompts(prompts_file_name, prompt_text_key="prompt", prompt_id_key="name", prompt_test_key="tests"):
+def read_prompts(prompts_file_name):
     """
     Reads the prompts from a jsonl file.
 
     Args:
         prompts_file_name (str): Name of the prompts file in jsonl
         format.
-        prompt_text_key (str, optional): Name of the prompt text key in the prompts file. Default is 'prompt'.
-        prompt_id_key (str, optional): Name of the prompt ID key in the prompts file. Default is 'task_id'.
-        prompt_test_key (str, optional): Name of the prompt test key in the prompts file. Default is 'tests'.
+        
 
     Returns:
-        list[tuple(int, str, str)]: List of tuples containing prompt IDs , prompt texts and prompt tests.
+        list[tuple(int, str, str, list[str])]: List of tuples containing prompt IDs , prompt texts and prompt tests.
     """
     prompts = []
     with jsonlines.open(prompts_file_name) as reader:
         for prompt in reader:
-            prompt_id = prompt[prompt_id_key]
-            prompt_text = prompt[prompt_text_key]
-            prompt_test = prompt[prompt_test_key]
-            prompts.append((prompt_id, prompt_text, prompt_test))
+            prompt_id = prompt["name"]
+            prompt_text = prompt["prompt"]
+            prompt_test = prompt["tests"]
+            prompt_stop_tokens = prompt["stop_tokens"]
+            prompts.append((prompt_id, prompt_text, prompt_test, prompt_stop_tokens))
     return prompts
 
 
@@ -484,7 +472,7 @@ def main():
     args = parser.parse_args()
 
     # Read the prompts
-    prompts = read_prompts(args.prompts_file_name, args.prompt_text_key, args.prompt_id_key)
+    prompts = read_prompts(args.prompts_file_name)
 
     #Extract programming language from prompts file name (e.g. prompts_py.jsonl)
     lang = args.prompts_file_name.split("_")[1].split(".")[0]
@@ -493,8 +481,8 @@ def main():
     if args.stop_tokens != None:
         stop_tokens = args.stop_tokens.split(",")
     else:
-        with open('stop_tokens.pkl', 'rb') as f:
-            stop_tokens = pickle.load(f)
+        sample_prompt = prompts[0]
+        stop_tokens = sample_prompt[3]
 
     #Check if the cwd starts with /content
     in_colab = False
