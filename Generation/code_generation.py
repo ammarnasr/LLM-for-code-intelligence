@@ -74,7 +74,7 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
         generations.append(generation_item)
         current_generations.append(generation_item)
 
-    utils.save_generations_to_jsonl(current_generations, output_file_name)
+    utils.write_results_to_jsonl_file(current_generations, output_file_name)
     if in_colab:
         shutil.copy(output_file_name, "/content/drive/MyDrive/generated_code")
     return generations
