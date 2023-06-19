@@ -8,17 +8,17 @@ import shutil
 import utils
 import all_parse
 
-def get_outputs_batch(inputs, gen_stratgey, batch_size):
+def get_outputs_batch(inputs, gen_stratgey):
     """
     Generates outputs based on the given prompts using a language model.
     """
     updated_generation_strategy = gen_stratgey
-    updated_generation_strategy.num_return_sequences = batch_size
+    updated_generation_strategy.num_return_sequences = BATCH_SIZE
     output = MODEL.generate(**inputs, generation_config=updated_generation_strategy)
     return output
 
 
-def batched_sampling_from_model(inputs, generation_strategy, batch_size):
+def batched_sampling_from_model(inputs, generation_strategy):
     """
     Generates outputs based on the given prompts using a language model.
 
@@ -30,16 +30,15 @@ def batched_sampling_from_model(inputs, generation_strategy, batch_size):
     Returns:
         torch.Tensor: Generated output tensor.
     """
-    target_return_sequences = generation_strategy.num_return_sequences
-    split_into_batches = False if batch_size >= target_return_sequences else True
+    split_into_batches = False if TARGTE_RETURN_SEQUENCES <= BATCH_SIZE else True
     if not split_into_batches:
             outputs = MODEL.generate(**inputs, generation_config=generation_strategy)
     else:
         outputs = []
-        num_of_batches = target_return_sequences // batch_size
-        size_of_last_batch = target_return_sequences % batch_size
+        num_of_batches = TARGTE_RETURN_SEQUENCES // BATCH_SIZE
+        size_of_last_batch = TARGTE_RETURN_SEQUENCES % BATCH_SIZE
         for i in tqdm(range(num_of_batches), unit="batch"):
-            output = get_outputs_batch(inputs, generation_strategy, batch_size)
+            output = get_outputs_batch(inputs, generation_strategy)
             outputs.append(output)
             if size_of_last_batch != 0 and i == num_of_batches-1:
                 output = get_outputs_batch(inputs, generation_strategy, size_of_last_batch)
@@ -58,9 +57,9 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
     """
     Stores the output in the generations list.
     """
+    current_generations = []
     for i, decoded_output in enumerate(decoded_outputs):
-        generations.append(
-            {
+        generation_item = {
                 "name": prompt_id,
                 "language": lang,
                 "temperature": generation_strategy.temperature,
@@ -72,8 +71,10 @@ def store_output(generations, decoded_outputs, generation_strategy, prompt_id, p
                 "output_id": i,
                 "output_text": decoded_output,
             }
-        )
-    utils.write_results_to_jsonl_file(generations, output_file_name)
+        generations.append(generation_item)
+        current_generations.append(generation_item)
+
+    utils.save_generations_to_jsonl(current_generations, output_file_name)
     if in_colab:
         shutil.copy(output_file_name, "/content/drive/MyDrive/generated_code")
     return generations
@@ -92,12 +93,12 @@ def get_processed_prompt_ids(output_file_name):
     return processed_prompt_ids
 
 
-def process_prompt(tokenizer, generation_strategy, prompt_text, stop_tokens, batch_size, device):
+def process_prompt(tokenizer, generation_strategy, prompt_text, stop_tokens, device):
         """
         Generates outputs based on the given prompts using a language model.
         """
         inputs = tokenizer(prompt_text, return_tensors="pt").to(device)
-        outputs = batched_sampling_from_model(inputs, generation_strategy, batch_size)
+        outputs = batched_sampling_from_model(inputs, generation_strategy)
         outputs = outputs[:, len(inputs["input_ids"][0]) :]
         decoded_outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
         decoded_outputs = [utils.stop_at_stop_token(decoded_output, stop_tokens) for decoded_output in decoded_outputs]
@@ -132,6 +133,10 @@ def init_generation(wandb_project_name, model_name, tokenizer_name, generation_s
             "batch_size": batch_size,
         }
     )
+    global BATCH_SIZE
+    BATCH_SIZE = batch_size
+    global TARGTE_RETURN_SEQUENCES
+    TARGTE_RETURN_SEQUENCES = generation_strategy.num_return_sequences
     return tokenizer, generation_strategy, generations, processed_prompt_ids
 
 
@@ -178,7 +183,7 @@ def generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strat
             print(f"Prompt {prompt_id} already processed. Skipping...")
             continue
         start_time = datetime.now()
-        decoded_outputs = process_prompt(tokenizer, generation_strategy, prompt_text, stop_tokens, batch_size, device)
+        decoded_outputs = process_prompt(tokenizer, generation_strategy, prompt_text, stop_tokens, device)
         generations = store_output(generations, decoded_outputs, generation_strategy, prompt_id, prompt_text, tests, stop_tokens, lang, output_file_name, in_colab)
 
         # Log generation time using wandb
