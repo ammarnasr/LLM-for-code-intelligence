@@ -7,3 +7,4 @@ runs
 *.pkl
 wandb
 __pycache__
+temp

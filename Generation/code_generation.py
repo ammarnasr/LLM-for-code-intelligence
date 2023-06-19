@@ -117,7 +117,6 @@ def init_generation(wandb_project_name, model_name, tokenizer_name, generation_s
     tokenizer = utils.initialize_tokenizer_from_huggingface(tokenizer_name)
     generation_strategy = utils.initialize_generation_strategy(generation_strategy_name)
     generation_strategy.pad_token_id = tokenizer.pad_token_id
-    generation_strategy.max_new_tokens = 500
     # List to store generations
     generations = []
     # Get the processed prompt IDs
