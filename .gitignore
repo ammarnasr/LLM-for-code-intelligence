@@ -8,3 +8,5 @@ runs
 wandb
 __pycache__
 temp
+data
+results
