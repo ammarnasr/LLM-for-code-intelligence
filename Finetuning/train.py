@@ -46,7 +46,9 @@ def run_training(args, train_data, val_data):
         target_modules = ["qkv_proj"]
     )
 
-    model = get_peft_model(model, lora_config)
+    if args.ft_type == "peft":
+        print("Using PEFT")
+        model = get_peft_model(model, lora_config)
 
     print_trainable_parameters(model)
 
@@ -55,7 +57,7 @@ def run_training(args, train_data, val_data):
     print("Starting main loop")
     if args.subset is None:
         args.subset = 'none'
-    run_name = f"{args.model_path.split('/')[-1]}_{args.dataset_name.split('/')[-1]}_{args.subset.split('/')[-1]}_{args.split}"
+    run_name = f"{args.model_path.split('/')[-1]}_{args.dataset_name.split('/')[-1]}_{args.subset.split('/')[-1]}_{args.split}_{args.ft_type}"
 
     training_args = TrainingArguments(
         output_dir=args.output_dir,
