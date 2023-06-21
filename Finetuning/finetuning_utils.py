@@ -91,7 +91,7 @@ def get_args():
     parser.add_argument("--output_dir", type=str, default="./checkpoints")
     parser.add_argument("--log_freq", default=100, type=int)
     parser.add_argument("--eval_freq", default=100, type=int)
-    parser.add_argument("--save_freq", default=3, type=int)
+    parser.add_argument("--save_freq", default=1, type=int)
 
     return parser.parse_args()
 
