@@ -7,4 +7,5 @@ pip install -q -r requirements.txt
 wandb login
 
 # Login to HuggingFace
+!git config --global credential.helper store
 huggingface-cli login
