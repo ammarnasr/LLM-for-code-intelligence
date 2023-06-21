@@ -9,6 +9,7 @@ def prepare_sample_text(example, input_column_name="prompt", output_column_name=
     """Prepare the text from a sample of the dataset."""
     if input_column_name == "content":
         text = example[input_column_name]
+        text = text[:2000]
     else:
         text = f"Question: {example[input_column_name]}\n\nAnswer: {example[output_column_name]}"
     return text
