@@ -46,7 +46,7 @@ def run_training(args, train_data, val_data):
         # target_modules = ["qkv_proj"]
     )
 
-    # model = get_peft_model(model, lora_config)
+    model = get_peft_model(model, lora_config)
 
     print_trainable_parameters(model)
 
@@ -82,6 +82,7 @@ def run_training(args, train_data, val_data):
     print("Training...")
     #Print the device used
     print(f"Device: {trainer.args.device}")
+    #Change the device to cpu
     trainer.train()
 
     print("Saving last checkpoint of the model")
