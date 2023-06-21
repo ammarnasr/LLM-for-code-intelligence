@@ -7,7 +7,10 @@ from datasets import load_dataset
 
 def prepare_sample_text(example, input_column_name="prompt", output_column_name="completion"):
     """Prepare the text from a sample of the dataset."""
-    text = f"Question: {example[input_column_name]}\n\nAnswer: {example[output_column_name]}"
+    if input_column_name == "content":
+        text = example[input_column_name]
+    else:
+        text = f"Question: {example[input_column_name]}\n\nAnswer: {example[output_column_name]}"
     return text
 
 
