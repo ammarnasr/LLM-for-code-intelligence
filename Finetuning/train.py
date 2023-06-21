@@ -71,18 +71,16 @@ def run_training(args, train_data, val_data):
         # gradient_checkpointing=not args.no_gradient_checkpointing,
         # fp16=not args.no_fp16,
         # bf16=args.bf16,
-        # weight_decay=args.weight_decay,
-        # run_name="StarCoder-finetuned",
-        # report_to="wandb",
+        weight_decay=args.weight_decay,
+        run_name=f"{args.model_path.split('/')[-1]}_{args.dataset_name.split('/')[-1]}_{args.subset.split('/')[-1]}_{args.split}",
+        report_to="wandb",
+        push_to_hub=True,
         # ddp_find_unused_parameters=False,
     )
 
     trainer = Trainer(model=model, args=training_args, train_dataset=train_data, eval_dataset=val_data, callbacks=[SavePeftModelCallback, LoadBestPeftModelCallback])
 
     print("Training...")
-    #Print the device used
-    print(f"Device: {trainer.args.device}")
-    #Change the device to cpu
     trainer.train()
 
     print("Saving last checkpoint of the model")
@@ -92,13 +90,7 @@ def run_training(args, train_data, val_data):
 def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, use_auth_token=True)
     train_dataset, eval_dataset = create_datasets(tokenizer, args)
-    #Print One sample from the dataset
-    print("Printing one sample from the dataset")
-    for sample in train_dataset:
-        print(sample)
-        break
-    print("Printing one sample from the dataset")
-    # run_training(args, train_dataset, eval_dataset)
+    run_training(args, train_dataset, eval_dataset)
 
 
 if __name__ == "__main__":
