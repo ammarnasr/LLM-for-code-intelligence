@@ -72,14 +72,15 @@ def run_training(args, train_data, val_data):
         learning_rate=args.learning_rate,
         lr_scheduler_type=args.lr_scheduler_type,
         warmup_steps=args.num_warmup_steps,
-        # gradient_accumulation_steps=args.gradient_accumulation_steps,
-        # gradient_checkpointing=not args.no_gradient_checkpointing,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
+        gradient_checkpointing=not args.no_gradient_checkpointing,
         # fp16=not args.no_fp16,
         # bf16=args.bf16,
         weight_decay=args.weight_decay,
         run_name=run_name,
         report_to="wandb",
         push_to_hub=True,
+        hub_model_id=f"ammarnasr/{run_name}"
         # ddp_find_unused_parameters=False,
     )
 
