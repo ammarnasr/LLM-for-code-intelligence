@@ -48,17 +48,20 @@ def get_args():
     # parser.add_argument("--model_path", type=str, default="bigcode/large-model")
     # parser.add_argument("--model_path", type=str, default="codeparrot/codeparrot-small")
     # parser.add_argument("--model_path", type=str, default="bigcode/tiny_starcoder_py")
-    # parser.add_argument("--dataset_name", type=str, default="HuggingFaceH4/CodeAlpaca_20K")
-    # parser.add_argument("--subset", type=str, default=None)
-    parser.add_argument("--dataset_name", type=str, default="bigcode/the-stack-dedup")
-    parser.add_argument("--subset", type=str, default="data/java")
+    
+    parser.add_argument("--dataset_name", type=str, default="HuggingFaceH4/CodeAlpaca_20K")
+    parser.add_argument("--subset", type=str, default=None)
+    parser.add_argument("--input_column_name", type=str, default="prompt")
+
+    # parser.add_argument("--dataset_name", type=str, default="bigcode/the-stack-dedup")
+    # parser.add_argument("--subset", type=str, default="data/java")
+    # parser.add_argument("--input_column_name", type=str, default="content")
+    
     parser.add_argument("--split", type=str, default="train")
     parser.add_argument("--size_valid_set", type=int, default=10000)
     parser.add_argument("--streaming", action="store_true", default=True)
     parser.add_argument("--shuffle_buffer", type=int, default=5000)
 
-    # parser.add_argument("--input_column_name", type=str, default="prompt")
-    parser.add_argument("--input_column_name", type=str, default="content")
     parser.add_argument("--output_column_name", type=str, default="completion")
 
     parser.add_argument("--seq_length", type=int, default=2048)
