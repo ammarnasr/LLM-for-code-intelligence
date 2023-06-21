@@ -42,8 +42,8 @@ def run_training(args, train_data, val_data):
         lora_dropout=args.lora_dropout,
         bias="none",
         task_type="CAUSAL_LM",
-        target_modules = ["c_proj", "c_attn", "q_attn"]
-        # target_modules = ["qkv_proj"]
+        # target_modules = ["c_proj", "c_attn", "q_attn"]
+        target_modules = ["qkv_proj"]
     )
 
     model = get_peft_model(model, lora_config)
