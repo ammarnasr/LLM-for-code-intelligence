@@ -53,6 +53,9 @@ def run_training(args, train_data, val_data):
     train_data.start_iteration = 0
 
     print("Starting main loop")
+    if args.subset is None:
+        args.subset = 'none'
+    run_name = f"{args.model_path.split('/')[-1]}_{args.dataset_name.split('/')[-1]}_{args.subset.split('/')[-1]}_{args.split}"
 
     training_args = TrainingArguments(
         output_dir=args.output_dir,
@@ -72,7 +75,7 @@ def run_training(args, train_data, val_data):
         # fp16=not args.no_fp16,
         # bf16=args.bf16,
         weight_decay=args.weight_decay,
-        run_name=f"{args.model_path.split('/')[-1]}_{args.dataset_name.split('/')[-1]}_{args.subset.split('/')[-1]}_{args.split}",
+        run_name=run_name,
         report_to="wandb",
         push_to_hub=True,
         # ddp_find_unused_parameters=False,
