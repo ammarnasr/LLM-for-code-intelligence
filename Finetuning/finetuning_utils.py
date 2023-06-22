@@ -42,8 +42,26 @@ class LoadBestPeftModelCallback(TrainerCallback):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--model_path", type=str, default="")
     parser.add_argument("--model_path", type=str, default="Salesforce/codegen-350M-mono")
+    parser.add_argument("--model_path", type=str, default="ammarnasr/codegen-350M-mono_the-stack-dedup_java_train_peft")
+    parser.add_argument("--size_valid_set", type=int, default=100)
+    parser.add_argument("--seq_length", type=int, default=2048)
+    parser.add_argument("--max_steps", type=int, default=10000)
+    parser.add_argument("--output_dir", type=str, default="./checkpoints")
+    parser.add_argument("--log_freq", default=5, type=int)
+    parser.add_argument("--eval_freq", default=1000, type=int)
+    parser.add_argument("--save_freq", default=100, type=int)
+
+
+
+
+
+
+
+
+
+
+    # parser.add_argument("--model_path", type=str, default="")
     # parser.add_argument("--model_path", type=str, default="bigcode/starcoder")
     # parser.add_argument("--model_path", type=str, default="bigcode/large-model")
     # parser.add_argument("--model_path", type=str, default="codeparrot/codeparrot-small")
@@ -58,7 +76,6 @@ def get_args():
     parser.add_argument("--input_column_name", type=str, default="content")
     
     parser.add_argument("--split", type=str, default="train")
-    parser.add_argument("--size_valid_set", type=int, default=100)
     parser.add_argument("--streaming", action="store_true", default=True)
     parser.add_argument("--shuffle_buffer", type=int, default=5000)
 
@@ -67,8 +84,6 @@ def get_args():
 
 
     parser.add_argument("--output_column_name", type=str, default="completion")
-    parser.add_argument("--seq_length", type=int, default=2048)
-    parser.add_argument("--max_steps", type=int, default=10000)
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=16)
     parser.add_argument("--eos_token_id", type=int, default=49152)
@@ -88,10 +103,8 @@ def get_args():
     parser.add_argument("--no_gradient_checkpointing", action="store_false", default=False)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--num_workers", type=int, default=None)
-    parser.add_argument("--output_dir", type=str, default="./checkpoints")
-    parser.add_argument("--log_freq", default=5, type=int)
-    parser.add_argument("--eval_freq", default=1000, type=int)
-    parser.add_argument("--save_freq", default=100, type=int)
+
+    
 
     return parser.parse_args()
 
