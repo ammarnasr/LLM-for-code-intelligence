@@ -25,7 +25,7 @@ def print_trainable_parameters(model):
 def run_training(args, train_data, val_data):
     print("Loading the model")
     if 'ammarnasr/' in args.model_path:    
-        config = PeftConfig.from_pretrained(args)
+        config = PeftConfig.from_pretrained(args.model_path)
         model = AutoModelForCausalLM.from_pretrained(
             config.base_model_name_or_path,
             use_auth_token=True,
@@ -62,9 +62,9 @@ def run_training(args, train_data, val_data):
             print("Using PEFT")
             model = get_peft_model(model, lora_config)
 
-        print_trainable_parameters(model)
+    print_trainable_parameters(model)
 
-        train_data.start_iteration = 0
+    train_data.start_iteration = 0
 
     print("Starting main loop")
     if args.subset is None:
