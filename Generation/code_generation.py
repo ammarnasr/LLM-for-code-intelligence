@@ -105,12 +105,15 @@ def process_prompt(tokenizer, generation_strategy, prompt_text, stop_tokens, dev
         return decoded_outputs
 
 
-def init_generation(wandb_project_name, model_name, tokenizer_name, generation_strategy_name, output_file_name, device, batch_size):
+def init_generation(wandb_project_name, model_name, tokenizer_name, generation_strategy_name, output_file_name, device, batch_size, with_peft):
     # Initialize Weights & Biases
     utils.initialize_wandb(wandb_project_name)
     #Load model as global variable to save GPU memory
     global MODEL 
-    MODEL = utils.initialize_causual_model_from_huffingface(model_name).to(device)
+    if with_peft:
+        MODEL = utils.initialize_peft_model_from_huffingface(model_name).to(device)
+    else:
+        MODEL = utils.initialize_causual_model_from_huffingface(model_name).to(device)
     # Load the model and tokenizer ang generation strategy
     # model = utils.initialize_causual_model_from_huffingface(model_name)
     # model = model.to(device)
@@ -159,7 +162,7 @@ def read_prompts(prompts_file_name):
     return prompts
 
 
-def generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strategy_name, stop_tokens, output_file_name, device, wandb_project_name, batch_size, in_colab):
+def generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strategy_name, stop_tokens, output_file_name, device, wandb_project_name, batch_size, in_colab, with_peft):
     """
     Generates outputs based on the given prompts using a language model.
     Args:
@@ -175,7 +178,7 @@ def generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strat
         list[dict]: List of dictionaries containing prompt ID and corresponding generated output.
     """
 
-    tokenizer, generation_strategy, generations, processed_prompt_ids = init_generation(wandb_project_name, model_name, tokenizer_name, generation_strategy_name, output_file_name, device, batch_size)
+    tokenizer, generation_strategy, generations, processed_prompt_ids = init_generation(wandb_project_name, model_name, tokenizer_name, generation_strategy_name, output_file_name, device, batch_size, with_peft)
     prompts_tbar = tqdm(prompts, unit="prompt")
     for prompt_id, prompt_text, tests, st in prompts_tbar:
         if prompt_id in processed_prompt_ids:
@@ -191,7 +194,7 @@ def generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strat
     return generations
 
 
-def main(args_dict=None):
+def main(args_dict=None, with_peft=False):
 
     if args_dict is None:
         parser = all_parse.get_parser_object_for_code_generation_script()
@@ -232,7 +235,7 @@ def main(args_dict=None):
 
 
     # Generate outputs
-    generated_outputs = generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strategy_name, stop_tokens, output_file_name, device, wandb_project_name, batch_size, in_colab )
+    generated_outputs = generate_outputs(prompts, model_name, lang, tokenizer_name, generation_strategy_name, stop_tokens, output_file_name, device, wandb_project_name, batch_size, in_colab, with_peft)
     print("Code generation completed successfully.")
 
 if __name__ == "__main__":
