@@ -24,33 +24,47 @@ def print_trainable_parameters(model):
 
 def run_training(args, train_data, val_data):
     print("Loading the model")
-    # disable caching mechanism when using gradient checkpointing
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_path,
-        use_auth_token=True,
-        use_cache=not args.no_gradient_checkpointing,
-        # load_in_8bit=True,
-        # device_map={"": Accelerator().process_index},
-    )
-    # model = prepare_model_for_int8_training(model)
+    if 'ammarnasr/' in args.model_path:    
+        config = PeftConfig.from_pretrained(args)
+        model = AutoModelForCausalLM.from_pretrained(
+            config.base_model_name_or_path,
+            use_auth_token=True,
+            use_cache=not args.no_gradient_checkpointing,
+            # load_in_8bit=True,
+            # device_map={"": Accelerator().process_index},
+        )
+        # Load the LoRA model
+        model = PeftModel.from_pretrained(model, args.model_path)
+        print_trainable_parameters(model)
+    else:
 
-    lora_config = LoraConfig(
-        r=args.lora_r,
-        lora_alpha=args.lora_alpha,
-        lora_dropout=args.lora_dropout,
-        bias="none",
-        task_type="CAUSAL_LM",
-        # target_modules = ["c_proj", "c_attn", "q_attn"]
-        target_modules = ["qkv_proj"]
-    )
+        # disable caching mechanism when using gradient checkpointing
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_path,
+            use_auth_token=True,
+            use_cache=not args.no_gradient_checkpointing,
+            # load_in_8bit=True,
+            # device_map={"": Accelerator().process_index},
+        )
+        # model = prepare_model_for_int8_training(model)
 
-    if args.ft_type == "peft":
-        print("Using PEFT")
-        model = get_peft_model(model, lora_config)
+        lora_config = LoraConfig(
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            bias="none",
+            task_type="CAUSAL_LM",
+            # target_modules = ["c_proj", "c_attn", "q_attn"]
+            target_modules = ["qkv_proj"]
+        )
 
-    print_trainable_parameters(model)
+        if args.ft_type == "peft":
+            print("Using PEFT")
+            model = get_peft_model(model, lora_config)
 
-    train_data.start_iteration = 0
+        print_trainable_parameters(model)
+
+        train_data.start_iteration = 0
 
     print("Starting main loop")
     if args.subset is None:
