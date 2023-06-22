@@ -3,6 +3,8 @@ import wandb
 from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 import jsonlines
 import os
+from peft import PeftConfig, PeftModel
+
 
 def initialize_wandb(wandb_project_name):
     wandb_project_name = wandb_project_name.replace("/", "-")
@@ -15,6 +17,15 @@ def initialize_tokenizer_from_huggingface(tokenizer_name):
 
 def initialize_causual_model_from_huffingface(model_name):
     model = AutoModelForCausalLM.from_pretrained(model_name)
+    return model
+
+def initialize_peft_model_from_huffingface(model_name):
+    print("Loading the model from checkpoint: ", model_name, "With peft ...")
+    config = PeftConfig.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path)
+    model = PeftModel.from_pretrained(model, model_name)
+    print("Done loading the model from checkpoint: ", model_name, "With peft ...")
+    model.print_trainable_parameters()
     return model
 
 def initialize_generation_strategy(generation_strategy_name):
