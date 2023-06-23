@@ -34,7 +34,7 @@ def run_training(args, train_data, val_data):
             # device_map={"": Accelerator().process_index},
         )
         # Load the LoRA model
-        model = PeftModel.from_pretrained(model, args.model_path)
+        model = PeftModel.from_pretrained(model, args.model_path, is_trainable=True)
         print_trainable_parameters(model)
     else:
 
