@@ -42,8 +42,8 @@ class LoadBestPeftModelCallback(TrainerCallback):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--model_path", type=str, default="Salesforce/codegen-350M-mono")
-    parser.add_argument("--model_path", type=str, default="ammarnasr/codegen-350M-mono_the-stack-dedup_java_train_peft")
+    parser.add_argument("--model_path", type=str, default="Salesforce/codegen-350M-mono")
+    # parser.add_argument("--model_path", type=str, default="ammarnasr/codegen-350M-mono_the-stack-dedup_java_train_peft")
     parser.add_argument("--size_valid_set", type=int, default=100)
     parser.add_argument("--seq_length", type=int, default=512)
     parser.add_argument("--max_steps", type=int, default=10000)
