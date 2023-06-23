@@ -50,7 +50,7 @@ def get_args():
     parser.add_argument("--output_dir", type=str, default="./checkpoints_full")
     parser.add_argument("--log_freq", default=5, type=int)
     parser.add_argument("--eval_freq", default=1000, type=int)
-    parser.add_argument("--save_freq", default=100, type=int)
+    parser.add_argument("--save_freq", default=1000, type=int)
     parser.add_argument("--ft_type", type=str, default="full")
 
 
