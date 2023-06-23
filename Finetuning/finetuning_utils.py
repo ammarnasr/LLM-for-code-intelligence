@@ -45,7 +45,7 @@ def get_args():
     # parser.add_argument("--model_path", type=str, default="Salesforce/codegen-350M-mono")
     parser.add_argument("--model_path", type=str, default="ammarnasr/codegen-350M-mono_the-stack-dedup_java_train_peft")
     parser.add_argument("--size_valid_set", type=int, default=100)
-    parser.add_argument("--seq_length", type=int, default=2048)
+    parser.add_argument("--seq_length", type=int, default=512)
     parser.add_argument("--max_steps", type=int, default=10000)
     parser.add_argument("--output_dir", type=str, default="./checkpoints_full")
     parser.add_argument("--log_freq", default=5, type=int)
