@@ -22,6 +22,14 @@ Fine Tuning Large Language Models for Code Intelligence - Msc Project
 - [ ] Setup the Knowledge Distillation environment
 - [ ] Document the Knowledge Distillation environment setup
 
+## Todo List 26/06 - 02/07
+- [ ] Try to expirment with the Learning Rate
+- [ ] Try to expirment with the Number of Layers to Freeze
+- [ ] Try to expirment with using a sample of the dataset processed and downloaded from the cloud
+- [ ] correlation between evaluation metrics and the number of fine-tuning steps
+- [ ] Smimlar Setup for the Parameter Efficient Fine Tuning and Full Fine Tuning
+- [ ] Documnetaion of progress and next steps
+
 
 
 
