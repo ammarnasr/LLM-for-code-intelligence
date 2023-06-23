@@ -99,8 +99,10 @@ def run_training(args, train_data, val_data):
         # ddp_find_unused_parameters=False,
     )
 
-    trainer = Trainer(model=model, args=training_args, train_dataset=train_data, eval_dataset=val_data, callbacks=[SavePeftModelCallback, LoadBestPeftModelCallback])
-
+    if args.ft_type == "peft":
+        trainer = Trainer(model=model, args=training_args, train_dataset=train_data, eval_dataset=val_data, callbacks=[SavePeftModelCallback, LoadBestPeftModelCallback])
+    else:
+        trainer = Trainer(model=model, args=training_args, train_dataset=train_data, eval_dataset=val_data)
     print("Training...")
     trainer.train()
 

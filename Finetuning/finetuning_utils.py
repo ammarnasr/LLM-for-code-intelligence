@@ -47,10 +47,11 @@ def get_args():
     parser.add_argument("--size_valid_set", type=int, default=100)
     parser.add_argument("--seq_length", type=int, default=2048)
     parser.add_argument("--max_steps", type=int, default=10000)
-    parser.add_argument("--output_dir", type=str, default="./checkpoints")
+    parser.add_argument("--output_dir", type=str, default="./checkpoints_full")
     parser.add_argument("--log_freq", default=5, type=int)
     parser.add_argument("--eval_freq", default=1000, type=int)
     parser.add_argument("--save_freq", default=100, type=int)
+    parser.add_argument("--ft_type", type=str, default="full")
 
 
 
@@ -79,7 +80,6 @@ def get_args():
     parser.add_argument("--streaming", action="store_true", default=True)
     parser.add_argument("--shuffle_buffer", type=int, default=5000)
 
-    parser.add_argument("--ft_type", type=str, default="peft")
     # parser.add_argument("--ft_type", type=str, default="full")
 
 
