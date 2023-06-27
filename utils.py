@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 import jsonlines
 import os
 from peft import PeftConfig, PeftModel
+import json
 
 
 def initialize_wandb(wandb_project_name):
@@ -66,3 +67,17 @@ def write_results_to_jsonl_file(results, output_file_name):
         with jsonlines.open(output_file_name, "w") as writer:
             for res in results:
                 writer.write(res)
+
+
+def read_json(filename):
+    with open(filename, "r") as f:
+        return json.load(f)
+    
+
+def write_json(filename, data):
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=4)
+
+def initialize_generation_strategy_from_dict(generation_config_dict):
+    generation_config = GenerationConfig(**generation_config_dict)
+    return generation_config
