@@ -3,6 +3,7 @@ checkpoints\java-full-ft\checkpoint-200-20230611T132423Z-002.zip
 */codegen-350M-mon_pass100x200_py_bs50.jsonl
 checkpoits/*/
 checkpoints
+checkpoints_local
 runs
 *.pkl
 wandb
