@@ -5,6 +5,8 @@ import jsonlines
 import os
 from peft import PeftConfig, PeftModel
 import json
+import pickle
+
 
 
 def initialize_wandb(wandb_project_name):
@@ -81,3 +83,10 @@ def write_json(filename, data):
 def initialize_generation_strategy_from_dict(generation_config_dict):
     generation_config = GenerationConfig(**generation_config_dict)
     return generation_config
+
+def load_pkl_data(filename = './data/java/bigcode-the-stack-dedup-train.pkl'):
+    print("Loading data from: ", filename)
+    with open(filename, "rb") as f:
+        ds = pickle.load(f)
+    print("Done loading data from: ", filename)
+    return ds
