@@ -5,7 +5,7 @@ checkpoits/*/
 checkpoints
 checkpoints_local
 runs
-*.pkl
+# *.pkl
 wandb
 __pycache__
 temp
