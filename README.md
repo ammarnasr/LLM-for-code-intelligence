@@ -34,31 +34,10 @@ Fine Tuning Large Language Models for Code Intelligence - Msc Project
 
 
 ## Fine-tuning CodeGen on TheStack
+Colab: <a href="https://colab.research.google.com/drive/1iWzsUeih_ObBJwmOkuD5D9Wm72eiRbQV?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=20></a>  
 
-Colab: <a href="https://colab.research.google.com/drive/1B_cfCkliI-UuNemmgMmXqxgjnDLslAq1?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=20></a>  
+Huggingface: <a href="https://huggingface.co/ammarnasr/codegen-350M-mono_the-stack-dedup_java_train_peft"><img src = "https://huggingface.co/datasets/huggingface/badges/raw/main/share-to-community-sm-dark.svg"></a>
 
-Huggingface: <a href="https://huggingface.co/ammarnasr/codegen-350M-multi-ft-on-code-x-glue-tc"><img src="https://huggingface.co/datasets/huggingface/badges/raw/main/share-to-community-sm-dark.svg"></a>
-
-Weights & Biases: <a href="https://wandb.ai/ammarnasr/codegen_ft_on_codexglue?workspace=user-ammarnasr"><img src="https://raw.githubusercontent.com/wandb/assets/main/wandb-github-badge-28.svg"></a>
+Weights & Biases: <a href="https://wandb.ai/ammarnasr/huggingface"><img src="https://raw.githubusercontent.com/wandb/assets/main/wandb-github-badge-28.svg"></a>
 
 
-## Evaluation on HumanEval
-
-### CodeGen with 350M parameters - No fine-tuning
-
-Colab: <a href="https://colab.research.google.com/drive/17cnKw8n2ELFLdu9i7zqi5mb99QdZdaax?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=20></a>
-
-<!-- TODO: add Hugging Face and WandB -->
-
-Huggingface: TODO
-
-Weights & Biases: TODO
-
-### CodeGen with 350M parameters - Fine-tuned on CodexGLUE
-<!-- TODO: add Colab, HuggingFace and WandB -->
-
-Colab: TODO
-
-Huggingface: TODO
-
-Weights & Biases: TODO
