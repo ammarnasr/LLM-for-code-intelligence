@@ -33,7 +33,7 @@ Fine Tuning Large Language Models for Code Intelligence - Msc Project
 
 
 
-## Fine-tuning CodeGen on CodexGLUE
+## Fine-tuning CodeGen on TheStack
 
 Colab: <a href="https://colab.research.google.com/drive/1B_cfCkliI-UuNemmgMmXqxgjnDLslAq1?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=20></a>  
 
