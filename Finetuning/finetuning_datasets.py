@@ -1,7 +1,12 @@
+import os
+import json
 import torch
+import pickle
+import jsonlines
 from tqdm.auto import tqdm
 from torch.utils.data import IterableDataset
 from datasets import load_dataset
+
 
 
 
@@ -139,3 +144,70 @@ def create_datasets(tokenizer, args):
         output_column_name=args.output_column_name
     )
     return train_dataset, valid_dataset
+
+
+
+def convert_json_to_jsonlines(filename):
+    with open(filename) as f:
+        data = json.load(f)
+    filename_without_ext = filename[:-5]
+    jsonl_filename = filename_without_ext+'.jsonl'
+    with jsonlines.open(jsonl_filename, mode='w') as writer:
+        for i in tqdm(range(len(data['hexsha']))):
+            writer.write({
+                'hexsha': data['hexsha'][i],
+                'size': data['size'][i],
+                'content': data['content'][i],
+                'avg_line_length': data['avg_line_length'][i],
+                'max_line_length': data['max_line_length'][i],
+                'alphanum_fraction': data['alphanum_fraction'][i]
+            })
+    return jsonl_filename
+
+def push_to_huggingface(num_samples=1000000):
+    print('Loading dataset from pickle file')
+    trainfile = './data_pkl/java/bigcode-the-stack-dedup-train.pkl'
+    with open(trainfile, "rb") as f:
+        train_ds = pickle.load(f)
+    
+    train_ds_dict = {
+        'hexsha': [],
+        'size': [],
+        'content': [],
+        'avg_line_length': [],
+        'max_line_length': [],
+        'alphanum_fraction': []
+    }
+    save_every = num_samples//10
+    trainfile_json = f'./data_pkl/java/bigcode-the-stack-dedup-train.json'
+    length = len(train_ds['hexsha'])
+
+    print(f'Creating json file with {num_samples} samples which is {num_samples/length*100}% of the dataset')
+    current_size = 0
+
+    tbar = tqdm(range(num_samples),total=num_samples, desc=f'latest file size: {current_size}MB')
+
+    for i in tbar:
+        train_ds_dict['hexsha'].append(train_ds[i]['hexsha'])
+        train_ds_dict['size'].append(train_ds[i]['size'])
+        train_ds_dict['content'].append(train_ds[i]['content'])
+        train_ds_dict['avg_line_length'].append(train_ds[i]['avg_line_length'])
+        train_ds_dict['max_line_length'].append(train_ds[i]['max_line_length'])
+        train_ds_dict['alphanum_fraction'].append(train_ds[i]['alphanum_fraction'])
+        if i % save_every == 0:
+            with open(trainfile_json, 'w') as f:
+                json.dump(train_ds_dict, f)
+            current_size = os.path.getsize(trainfile_json)/1e6
+            tbar.set_description(f'latest file size: {current_size:.2f}MB')
+            
+
+    print('Converting json to jsonl')
+    trainfile_jsonl = convert_json_to_jsonlines(trainfile_json)
+
+    print('Pushing to huggingface')
+    hf_ds = load_dataset("json", data_files=trainfile_jsonl)
+    hf_repo = 'ammarnasr/bigcode-the-stack-dedup-java-small-subset'
+    hf_ds.push_to_hub(hf_repo)
+
+
+
