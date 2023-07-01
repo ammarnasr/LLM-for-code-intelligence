@@ -31,6 +31,19 @@ Fine Tuning Large Language Models for Code Intelligence - Msc Project
 - [ ] Documnetaion of progress and next steps
 
 
+## Colab Notebooks
+Code-LLM-finetuning-V2.ipynb: <a href=""><img src="assets/colab-badge.svg" height=20></a>  
+
+Code-LLM-finetuning-LoRa-V2.ipynb <a href=""><img src="assets/colab-badge.svg" height=20></a>  
+
+
+Code-LLM-Perplexity.ipynb <a href=""><img src="assets/colab-badge.svg" height=20></a>  
+
+
+Code-LLM-Generation-Python.ipynb <a href=""><img src="assets/colab-badge.svg" height=20></a>  
+
+
+Code-LLM-Generation-Java.ipynb <a href=""><img src="assets/colab-badge.svg" height=20></a>  
 
 
 ## Fine-tuning CodeGen on TheStack
