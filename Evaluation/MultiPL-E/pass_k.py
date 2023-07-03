@@ -22,7 +22,6 @@ from pathlib import Path
 import itertools
 import argparse
 import json
-import pprint
 import glob
 from os import listdir
 from os.path import isfile, join
@@ -47,7 +46,6 @@ def estimator(n: int, c: int, k: int) -> float:
 
 
 def for_file(path):
-    # print(f"Reading {path}...")
     data = read_json_res(path)
     if data is None:
       return None
@@ -92,16 +90,12 @@ def main(dirs = None, output = None):
     # results = [ for_file(p) for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")) ]
     results = []
 
-    print(f"Reading results from {d}...")
-    print(f"And saving results to {output}...")
 
     for p in itertools.chain(Path(d).glob("*.results.json"), Path(d).glob("*.results.json.gz")):
         res = for_file(p)
         if res is not None:
             results.append(res)
 
-    print(f"Read {len(results)} results")
-    print(f"Sample result: {results[0]}")
     
     results = [ r for r in results if r is not None ]
     name = d.split("/")[-1] if d.split("/")[-1] != "" else d.split("/")[-2]
@@ -148,8 +142,6 @@ def main(dirs = None, output = None):
         raise ValueError(f"Unexpected temperature: {temperature}")
         
     
-    #pretty print results_dict
-    pprint.pprint(results_dict)
     
     output_file = "results_dict.json"
     if output is not None:
