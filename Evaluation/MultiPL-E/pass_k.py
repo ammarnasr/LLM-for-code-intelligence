@@ -53,10 +53,7 @@ def for_file(path):
       return None
     n = len(data["results"])
     c = len([True for r in data["results"] if r["status"] == "OK" and r["exit_code"] == 0])
-    if c > 0 :
-        print('='*20)
-        print(f'For file {path} n = {n} and c = {c}')
-        print('='*20)
+    
     return {
         "pass@1": estimator(n, c, 1),
         "pass@10": estimator(n, c, 10),
