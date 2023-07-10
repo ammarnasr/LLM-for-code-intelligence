@@ -32,18 +32,22 @@ Fine Tuning Large Language Models for Code Intelligence - Msc Project
 
 
 ## Colab Notebooks
-Code-LLM-finetuning-V2.ipynb: <a href="https://colab.research.google.com/drive/1BuRz-HBFCjxpmJfMg7QedbfNDXPl7Kap?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  
+Code-LLM-finetuning-V2.ipynb: <a href="https://colab.research.google.com/drive/1BuRz-HBFCjxpmJfMg7QedbfNDXPl7Kap?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [ammar nasr]
 
-Code-LLM-finetuning-LoRa-V2.ipynb <a href="https://colab.research.google.com/drive/1iWzsUeih_ObBJwmOkuD5D9Wm72eiRbQV?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  
-
-
-Code-LLM-Perplexity.ipynb <a href="https://colab.research.google.com/drive/105aYjjovxfWKRifK5uzDfoQ2ZrTykoa4?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  
+Code-LLM-finetuning-LoRa-V2.ipynb <a href="https://colab.research.google.com/drive/1iWzsUeih_ObBJwmOkuD5D9Wm72eiRbQV?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [rdin uni]
 
 
-Code-LLM-Generation-Python.ipynb <a href="https://colab.research.google.com/drive/1gQ2GOwz40tNqF8UDakGsiZngJVt21DHI?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  
+Code-LLM-Perplexity.ipynb <a href="https://colab.research.google.com/drive/105aYjjovxfWKRifK5uzDfoQ2ZrTykoa4?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [brilliant]
 
 
-Code-LLM-Generation-Java.ipynb <a href="https://colab.research.google.com/drive/13ocCjQwO0-hwkEt1xWNzRVFkfzMBn459?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  
+Code-LLM-Generation-Python.ipynb <a href="https://colab.research.google.com/drive/1gQ2GOwz40tNqF8UDakGsiZngJVt21DHI?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [chat gpt]
+
+
+Code-LLM-Generation-Java.ipynb <a href="https://colab.research.google.com/drive/13ocCjQwO0-hwkEt1xWNzRVFkfzMBn459?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [brilliant premuim]
+
+Code-LLM-Distillation.ipynb <a href="https://colab.research.google.com/drive/10ZIvvJml4cDMPVBPH_4QlLrU091XdGDA?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [lora llm]
+
+
 
 
 
