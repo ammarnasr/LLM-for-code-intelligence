@@ -17,3 +17,5 @@ res
 Finetuning/*/
 demo.ipynb
 archive
+wandb_plots
+wanb_plots
