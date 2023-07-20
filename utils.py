@@ -19,7 +19,7 @@ def initialize_tokenizer_from_huggingface(tokenizer_name):
     return tokenizer
 
 def initialize_causual_model_from_huffingface(model_name):
-    model = AutoModelForCausalLM.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name,  trust_remote_code=True, revision="main")
     return model
 
 def initialize_peft_model_from_huffingface(model_name):
