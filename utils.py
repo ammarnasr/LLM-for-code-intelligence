@@ -25,7 +25,7 @@ def initialize_causual_model_from_huffingface(model_name):
 def initialize_peft_model_from_huffingface(model_name):
     print("Loading the model from checkpoint: ", model_name, "With peft ...")
     config = PeftConfig.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path)
+    model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path,  trust_remote_code=True, revision="main")
     model = PeftModel.from_pretrained(model, model_name)
     print("Done loading the model from checkpoint: ", model_name, "With peft ...")
     model.print_trainable_parameters()
