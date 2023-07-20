@@ -136,6 +136,10 @@ def main(abilation_var, abilation_index):
         model.enable_input_require_grads()
         model = get_peft_model(model, lora_config)
         model.print_trainable_parameters()
+    else:
+        model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True, use_cache=False)
+        model.enable_input_require_grads()
+        # model.print_trainable_parameters()
     training_args_dict = {}
     training_args_dict.update({
             "output_dir": output_dir,
