@@ -17,6 +17,8 @@ from transformers import (
 from finetuning_datasets import ConstantLengthDataset
 
 
+
+
 def get_derived_variables(effective_seq_length, LoRa_rank, LoRa_traget_module_index, train_batch_size, gradient_accumulation_steps, using_LoRa):
     total_tokens = 1000000
     max_steps = total_tokens // effective_seq_length

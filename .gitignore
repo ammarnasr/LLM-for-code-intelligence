@@ -19,3 +19,5 @@ demo.ipynb
 archive
 wandb_plots
 wanb_plots
+*.pdf
+*.docx
