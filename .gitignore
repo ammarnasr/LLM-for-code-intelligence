@@ -21,3 +21,4 @@ wandb_plots
 wanb_plots
 *.pdf
 *.docx
+model_cards
