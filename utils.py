@@ -70,6 +70,16 @@ def write_results_to_jsonl_file(results, output_file_name):
             for res in results:
                 writer.write(res)
 
+                
+def json_to_jsonl(json_file, jsonl_file):
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+
+    with jsonlines.open(jsonl_file, 'w') as writer:
+        for i in range(len(data)):
+            writer.write(data[i])
+        
+
 
 def read_json(filename):
     with open(filename, "r") as f:
