@@ -38,7 +38,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
     valid_ds = dataset["valid"]
     valid_ds = valid_ds.select(list(range(100)))
     
-    def initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules):
+    def initilize_expiremnt(model, effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules):
         train_dataset = ConstantLengthDataset(tokenizer, train_ds, infinite=True, seq_length=effective_seq_length_train)
         valid_dataset = ConstantLengthDataset(tokenizer, valid_ds, infinite=False, seq_length=effective_seq_length_eval)
         lora_config = LoraConfig(r = lora_rank, lora_alpha = lora_alpha, lora_dropout = lora_dropout, bias = lora_bias, task_type = lora_task_type, target_modules = lora_target_modules)
@@ -72,7 +72,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
     if ablation_var == "lora_target_modules":
         for i in range(start_index, len(ablation_values)):
             lora_target_modules = ablation_values[i]
-            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            train_dataset, valid_dataset, model = initilize_expiremnt(model, effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{lora_target_modules}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
@@ -82,7 +82,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
     elif ablation_var == "lora_rank":
         for i in range(start_index, len(ablation_values)):
             lora_rank = ablation_values[i]
-            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            train_dataset, valid_dataset, model = initilize_expiremnt(model, effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{lora_rank}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
@@ -92,7 +92,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
     elif ablation_var == "effective_seq_length_train":
         for i in range(start_index, len(ablation_values)):
             effective_seq_length_train = ablation_values[i]
-            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            train_dataset, valid_dataset, model = initilize_expiremnt(model, effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{effective_seq_length_train}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
@@ -102,7 +102,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
     elif ablation_var == "per_device_train_batch_size":
         for i in range(start_index, len(ablation_values)):
             per_device_train_batch_size = ablation_values[i]
-            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            train_dataset, valid_dataset, model = initilize_expiremnt(model, effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{per_device_train_batch_size}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
@@ -112,7 +112,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
     elif ablation_var == "learning_rate":
         for i in range(start_index, len(ablation_values)):
             learning_rate = ablation_values[i]
-            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            train_dataset, valid_dataset, model = initilize_expiremnt(model, effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{learning_rate}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
