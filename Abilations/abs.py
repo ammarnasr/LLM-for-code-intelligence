@@ -56,7 +56,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
                 "max_steps": max_steps,
                 "eval_steps": eval_steps,
                 "save_steps": save_steps,
-                "eval_strategy": eval_strategy,
+                "evaluation_strategy": eval_strategy,
                 "logging_steps": logging_steps,
                 "learning_rate": learning_rate,
                 "warmup_steps": warmup_steps,
