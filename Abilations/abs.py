@@ -77,7 +77,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
-            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+            trainer.train(resume_from_checkpoint=continue_from_checkpoint)
             
     elif ablation_var == "lora_rank":
         for i in range(start_index, len(ablation_values)):
@@ -87,7 +87,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
-            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+            trainer.train(resume_from_checkpoint=continue_from_checkpoint)
 
     elif ablation_var == "effective_seq_length_train":
         for i in range(start_index, len(ablation_values)):
@@ -97,7 +97,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
-            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+            trainer.train(resume_from_checkpoint=continue_from_checkpoint)
 
     elif ablation_var == "per_device_train_batch_size":
         for i in range(start_index, len(ablation_values)):
@@ -107,7 +107,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
-            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+            trainer.train(resume_from_checkpoint=continue_from_checkpoint)
 
     elif ablation_var == "learning_rate":
         for i in range(start_index, len(ablation_values)):
@@ -117,7 +117,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
-            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+            trainer.train(resume_from_checkpoint=continue_from_checkpoint)
 
     else:
         print("Invalid ablation_var")
