@@ -1,73 +1,133 @@
-import os
-import torch
-from dataclasses import dataclass
 from datasets import load_dataset
-from torch.utils.data import IterableDataset
-from torch.utils.data.dataloader import DataLoader
-from tqdm.notebook import tqdm
-from peft import LoraConfig, get_peft_model, PeftConfig, PeftModel
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    Trainer,
-    TrainingArguments,
-    logging,
-    set_seed
-)
+from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from finetuning_datasets import ConstantLengthDataset
 
-
-
-
-def get_derived_variables(effective_seq_length, LoRa_rank, LoRa_traget_module_index, train_batch_size, gradient_accumulation_steps, using_LoRa):
-    total_tokens = 1000000
-    max_steps = total_tokens // effective_seq_length
-    max_steps = max_steps // train_batch_size
-    max_steps = max_steps // gradient_accumulation_steps
-
-    actual_total_tokens = total_tokens
-    if max_steps > 1000:
-        max_steps = 1000
-        actual_total_tokens = max_steps * effective_seq_length * train_batch_size * gradient_accumulation_steps
-
-
-    eval_steps = (5/100) * max_steps
-    eval_steps = int(eval_steps)
-    save_steps = (10/100) * max_steps
-    save_steps = int(save_steps)
-
-
-    output_dir = f"seq_{effective_seq_length}_rank_{LoRa_rank}_module_{LoRa_traget_module_index}_bs_{train_batch_size}_gradacc_{gradient_accumulation_steps}_tokens_{actual_total_tokens}"
-    #create output dir if not exist
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    # create subdirs LoRa and Full if not exist
-    if not os.path.exists(os.path.join(output_dir, "LoRa")):
-        os.makedirs(os.path.join(output_dir, "LoRa"))
-    if not os.path.exists(os.path.join(output_dir, "Full")):
-        os.makedirs(os.path.join(output_dir, "Full"))
-
-    if using_LoRa:
-        output_dir = os.path.join(output_dir, "LoRa")
-    run_name = output_dir.replace("\\", "_").replace("/", "_")
-    return output_dir, run_name, max_steps, eval_steps, save_steps
-
-
-
-
-def main(abilation_var, abilation_index):
-    print('Step1: Loading Tokenizer and Dataset')
-    model_id = "Salesforce/codegen-350M-mono"
-    tokenizer_id = "Salesforce/codegen-350M-mono"
+def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=False):
+    model_id = 'Salesforce/codegen-350M-mono'
+    tokenizer_id = 'Salesforce/codegen-350M-mono'
+    lang = 'java'
+    dataset_id = f'ammarnasr/the-stack-{lang}-clean'
+    effective_seq_length_train = 2048
+    effective_seq_length_eval  = 2048
+    lora_rank = 64
+    lora_alpha = lora_rank*2
+    lora_dropout = 0.05
+    lora_bias = 'all'
+    lora_task_type = 'CAUSAL_LM'
+    lora_target_modules = ["qkv_proj", "out_proj", "lm_head", "fc_in", "fc_out"]
+    dataloader_drop_last = True
+    max_steps = 1000
+    eval_steps = 50
+    save_steps = 100
+    eval_strategy = 'steps'
+    logging_steps = 1
+    learning_rate = 5e-5
+    warmup_steps = 100
+    lr_scheduler_type = 'cosine'
+    gradient_checkpointing = True
+    gradient_accumulation_steps = 1
+    per_device_train_batch_size  = 4
+    per_device_eval_batch_size = 4
+    fp16 = True
+    
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_id)
-    dataset_id = "ammarnasr/bigcode-the-stack-dedup-java-small-subset"
+    model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True, use_cache=False)
     dataset = load_dataset(dataset_id)
     train_ds = dataset["train"]
     valid_ds = dataset["valid"]
     valid_ds = valid_ds.select(list(range(100)))
-    valid_dataset = ConstantLengthDataset(tokenizer, valid_ds, infinite=False, seq_length=1024)
+    
+    def initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules):
+        train_dataset = ConstantLengthDataset(tokenizer, train_ds, infinite=True, seq_length=effective_seq_length_train)
+        valid_dataset = ConstantLengthDataset(tokenizer, valid_ds, infinite=False, seq_length=effective_seq_length_eval)
+        lora_config = LoraConfig(r = lora_rank, lora_alpha = lora_alpha, lora_dropout = lora_dropout, bias = lora_bias, task_type = lora_task_type, target_modules = lora_target_modules)
+        model.enable_input_require_grads()
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
+        return train_dataset, valid_dataset, model
+    
+    def get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size):
+        training_args_dict = {}
+        training_args_dict.update({
+                "output_dir": output_dir,
+                "run_name": output_dir+'-wandb',
+                "dataloader_drop_last": dataloader_drop_last,
+                "max_steps": max_steps,
+                "eval_steps": eval_steps,
+                "save_steps": save_steps,
+                "eval_strategy": eval_strategy,
+                "logging_steps": logging_steps,
+                "learning_rate": learning_rate,
+                "warmup_steps": warmup_steps,
+                "lr_scheduler_type": lr_scheduler_type,
+                "gradient_checkpointing": gradient_checkpointing,
+                "gradient_accumulation_steps": gradient_accumulation_steps,
+                "per_device_train_batch_size": per_device_train_batch_size,
+                "per_device_eval_batch_size": per_device_eval_batch_size,
+                "fp16": fp16
+        })
+        return training_args_dict
 
-    print('Step 2: Getting abilation vars')
+    if ablation_var == "lora_target_modules":
+        for i in range(start_index, len(ablation_values)):
+            lora_target_modules = ablation_values[i]
+            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{lora_target_modules}"
+            training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
+            training_args = TrainingArguments(**training_args_dict)
+            trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
+            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+            
+    elif ablation_var == "lora_rank":
+        for i in range(start_index, len(ablation_values)):
+            lora_rank = ablation_values[i]
+            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{lora_rank}"
+            training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
+            training_args = TrainingArguments(**training_args_dict)
+            trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
+            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+
+    elif ablation_var == "effective_seq_length_train":
+        for i in range(start_index, len(ablation_values)):
+            effective_seq_length_train = ablation_values[i]
+            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{effective_seq_length_train}"
+            training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
+            training_args = TrainingArguments(**training_args_dict)
+            trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
+            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+
+    elif ablation_var == "per_device_train_batch_size":
+        for i in range(start_index, len(ablation_values)):
+            per_device_train_batch_size = ablation_values[i]
+            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{per_device_train_batch_size}"
+            training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
+            training_args = TrainingArguments(**training_args_dict)
+            trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
+            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+
+    elif ablation_var == "learning_rate":
+        for i in range(start_index, len(ablation_values)):
+            learning_rate = ablation_values[i]
+            train_dataset, valid_dataset, model = initilize_expiremnt(effective_seq_length_train, effective_seq_length_eval, lora_rank, lora_alpha, lora_dropout, lora_bias, lora_task_type, lora_target_modules)
+            output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{learning_rate}"
+            training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
+            training_args = TrainingArguments(**training_args_dict)
+            trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
+            trainer.train(continue_from_checkpoint=continue_from_checkpoint)
+
+    else:
+        print("Invalid ablation_var")
+        exit(1)
+
+
+
+
+
+if __name__ == "__main__":
     effective_seq_length_list = [128, 256, 512, 1024, 2048]
     loRa_rank_list = [8, 16, 32, 64, 128]
     LoRa_traget_module_list = [
@@ -81,89 +141,23 @@ def main(abilation_var, abilation_index):
         ["qkv_proj", "out_proj", "lm_head", "fc_in", "fc_out"], # index 7
     ]
     train_batch_size_list = [1, 2, 4, 8, 16]
-    gradient_accumulation_steps_list = [1, 2, 4, 8, 16]
     learning_rate_list = [5e-5, 5e-4, 5e-3, 5e-2]
-    using_LoRa_list = [True, False]
-    effective_seq_length = 512
-    loRa_rank = 16
-    LoRa_traget_module_index = 7
-    train_batch_size = 4
-    gradient_accumulation_steps = 1
-    learning_rate = 5e-5
-    using_LoRa = True
 
+    # ablation_var = "lora_rank"
+    # ablation_values = loRa_rank_list
 
-    # Defualt Variables
-    using_LoRa = True
-    learning_rate = 5e-5
-    gradient_accumulation_steps = 1
-    loRa_rank = 16
-    train_batch_size = 4
-    effective_seq_length = 512
-    LoRa_traget_module_index = 7
+    # ablation_var = "effective_seq_length_train"
+    # ablation_values = effective_seq_length_list
 
-    if abilation_var == 'LoRa_traget_module_index':
-        LoRa_traget_module_index = abilation_index
-    elif abilation_var == 'effective_seq_length':
-        effective_seq_length = effective_seq_length_list[abilation_index]
-    elif abilation_var == 'loRa_rank':
-        loRa_rank = loRa_rank_list[abilation_index]
-    elif abilation_var == 'train_batch_size':
-        train_batch_size = train_batch_size_list[abilation_index]
-    elif abilation_var == 'gradient_accumulation_steps':
-        gradient_accumulation_steps = gradient_accumulation_steps_list[abilation_index]
-    elif abilation_var == 'learning_rate':
-        learning_rate = learning_rate_list[abilation_index]
-    elif abilation_var == 'using_LoRa':
-        using_LoRa = using_LoRa_list[abilation_index]
-    else:
-        print('Wrong abilation_var')
-        print(f'''
-                    Select One of:
-              1. LoRa_traget_module_index, max value is {len(LoRa_traget_module_list)-1}
-                2. effective_seq_length, max value is {len(effective_seq_length_list)-1}
-                3. loRa_rank, max value is {len(loRa_rank_list)-1}
-                4. train_batch_size, max value is {len(train_batch_size_list)-1}
-                5. gradient_accumulation_steps, max value is {len(gradient_accumulation_steps_list)-1}
-                6. learning_rate, max value is {len(learning_rate_list)-1}
-                7. using_LoRa, max value is {len(using_LoRa_list)-1}    
-              ''')
-        
-        return
-    output_dir, run_name, max_steps, eval_steps, save_steps = get_derived_variables(effective_seq_length, loRa_rank, LoRa_traget_module_index, train_batch_size, gradient_accumulation_steps, using_LoRa)
-    train_dataset = ConstantLengthDataset(tokenizer, train_ds, infinite=True, seq_length=effective_seq_length)
-    lora_config = LoraConfig(r = loRa_rank, lora_alpha=loRa_rank*2, lora_dropout= 0.05, bias="all", task_type="CAUSAL_LM", target_modules = LoRa_traget_module_list[LoRa_traget_module_index])
-    if using_LoRa:
-        model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True, use_cache=False)
-        model.enable_input_require_grads()
-        model = get_peft_model(model, lora_config)
-        model.print_trainable_parameters()
-    else:
-        model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True, use_cache=False)
-        model.enable_input_require_grads()
-        # model.print_trainable_parameters()
-    training_args_dict = {}
-    training_args_dict.update({
-            "output_dir": output_dir,
-            "run_name": run_name,
-            "max_steps": max_steps,
-            "eval_steps": eval_steps,
-            "save_steps": save_steps,
-            "learning_rate": learning_rate,
-            "per_device_train_batch_size": train_batch_size ,
-            "gradient_accumulation_steps": gradient_accumulation_steps,
-            "logging_steps": 1,
-            "per_device_eval_batch_size": 4,
-            "dataloader_drop_last": True,
-            "evaluation_strategy": "steps",
-            "gradient_checkpointing": True,
-            "fp16": True,
-    })
-    print(training_args_dict)
-    training_args = TrainingArguments(**training_args_dict)
+    # ablation_var = "per_device_train_batch_size"
+    # ablation_values = train_batch_size_list
 
-    trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
-    trainer.train()
-    print("=====================================================")
+    # ablation_var = "learning_rate"
+    # ablation_values = learning_rate_list
 
+    ablation_var = "LoRa_traget_module"
+    ablation_values = LoRa_traget_module_list
 
+    main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=None)
+
+    
