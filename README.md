@@ -32,9 +32,9 @@ Fine Tuning Large Language Models for Code Intelligence - Msc Project
 
 
 ## Colab Notebooks
-Code-LLM-finetuning-V2.ipynb: <a href="https://colab.research.google.com/drive/1BuRz-HBFCjxpmJfMg7QedbfNDXPl7Kap?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [ammar nasr]
+Code-LLM-finetuning-V7.ipynb: <a href="https://colab.research.google.com/drive/1BuRz-HBFCjxpmJfMg7QedbfNDXPl7Kap?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [ammar nasr]
 
-Code-LLM-finetuning-LoRa-V2.ipynb <a href="https://colab.research.google.com/drive/1iWzsUeih_ObBJwmOkuD5D9Wm72eiRbQV?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [rdin uni]
+Code-LLM-finetuning-LoRa-V7.ipynb <a href="https://colab.research.google.com/drive/1iWzsUeih_ObBJwmOkuD5D9Wm72eiRbQV?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [rdin uni]
 
 
 Code-LLM-Perplexity.ipynb <a href="https://colab.research.google.com/drive/105aYjjovxfWKRifK5uzDfoQ2ZrTykoa4?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [brilliant]
@@ -46,6 +46,9 @@ Code-LLM-Generation-Python.ipynb <a href="https://colab.research.google.com/driv
 Code-LLM-Generation-Java.ipynb <a href="https://colab.research.google.com/drive/13ocCjQwO0-hwkEt1xWNzRVFkfzMBn459?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [brilliant premuim]
 
 Code-LLM-Ablations.ipynb <a href="https://colab.research.google.com/drive/10ZIvvJml4cDMPVBPH_4QlLrU091XdGDA?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [lora llm]
+
+
+Code-LLM-Checkpoint-Generations.ipynb: <a href="https://colab.research.google.com/drive/10J_6AVmGv5GKX1vJ-A-4SfKFpRr8Q3HZ?usp=sharing"><img src="assets/colab-badge.svg" height=10></a>  [ammar nasr]
 
 
 
