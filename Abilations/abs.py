@@ -141,7 +141,7 @@ if __name__ == "__main__":
         ["qkv_proj", "out_proj", "lm_head", "fc_in", "fc_out"], # index 7
     ]
     train_batch_size_list = [1, 2, 4, 8, 16]
-    learning_rate_list = [5e-5, 5e-4, 5e-3, 5e-2]
+    learning_rate_list = [5e-6, 1e-5, 5e-5, 5e-4, 5e-3]
 
     # ablation_var = "lora_rank"
     # ablation_values = loRa_rank_list
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     # ablation_var = "learning_rate"
     # ablation_values = learning_rate_list
 
-    ablation_var = "LoRa_traget_module"
+    ablation_var = "lora_target_modules"
     ablation_values = LoRa_traget_module_list
 
     main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=None)
