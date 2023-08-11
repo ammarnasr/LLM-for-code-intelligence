@@ -2,6 +2,9 @@ from datasets import load_dataset
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from finetuning_datasets import ConstantLengthDataset
+import os
+import numpy as np
+from peft import PeftConfig, PeftModel
 
 def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=False):
     model_id = 'Salesforce/codegen-350M-mono'
@@ -68,6 +71,25 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
                 "fp16": fp16
         })
         return training_args_dict
+    
+    def get_model_from_checkpoint(output_dir):
+        #Get all folders in output_dir that start with 'checkpoint-'
+        checkpoint_folders = [f for f in os.listdir(output_dir) if os.path.isdir(os.path.join(output_dir, f)) and f.startswith('checkpoint-')]
+        #Get checkpoint indices
+        checkpoint_indices = [int(f.split('-')[1]) for f in checkpoint_folders]
+        #Get the checkpoint folder with the highest index
+        latest_checkpoint_folder = checkpoint_folders[np.argmax(checkpoint_indices)]
+        #Get the path to the latest checkpoint
+        latest_checkpoint_path = os.path.join(output_dir, latest_checkpoint_folder)
+        #Load the model from the latest checkpoint
+        model_name = latest_checkpoint_path
+        config = PeftConfig.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path,  trust_remote_code=True, revision="main")
+        model = PeftModel.from_pretrained(model, model_name)
+        print("Done loading the model from checkpoint: ", model_name, "With peft ...")
+        model.print_trainable_parameters()
+        return model
+    
 
     if ablation_var == "lora_target_modules":
         for i in range(start_index, len(ablation_values)):
@@ -76,6 +98,8 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{lora_target_modules}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
+            if continue_from_checkpoint:
+                model = get_model_from_checkpoint(output_dir)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
             trainer.train(resume_from_checkpoint=continue_from_checkpoint)
             
@@ -96,6 +120,8 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{effective_seq_length_train}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
+            if continue_from_checkpoint:
+                model = get_model_from_checkpoint(output_dir)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
             trainer.train(resume_from_checkpoint=continue_from_checkpoint)
 
@@ -106,6 +132,8 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{per_device_train_batch_size}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
+            if continue_from_checkpoint:
+                model = get_model_from_checkpoint(output_dir)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
             trainer.train(resume_from_checkpoint=continue_from_checkpoint)
 
@@ -116,6 +144,8 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
             output_dir = f"codegen-{lang}-LoRa-v7-run-1-{ablation_var}-{i}-{learning_rate}"
             training_args_dict = get_training_args_dict(output_dir, learning_rate, per_device_train_batch_size)
             training_args = TrainingArguments(**training_args_dict)
+            if continue_from_checkpoint:
+                model = get_model_from_checkpoint(output_dir)
             trainer = Trainer(model, training_args, train_dataset=train_dataset, eval_dataset=valid_dataset)
             trainer.train(resume_from_checkpoint=continue_from_checkpoint)
 
