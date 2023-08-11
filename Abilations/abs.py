@@ -83,6 +83,7 @@ def main(ablation_var, ablation_values, start_index=0, continue_from_checkpoint=
         latest_checkpoint_path = os.path.join(output_dir, latest_checkpoint_folder)
         #Load the model from the latest checkpoint
         model_name = latest_checkpoint_path
+        print("Loading the model from checkpoint: ", model_name, "With peft ...")
         config = PeftConfig.from_pretrained(model_name)
         model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path,  trust_remote_code=True, revision="main")
         model = PeftModel.from_pretrained(model, model_name)
