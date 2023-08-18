@@ -1,0 +1,16 @@
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Index & Modules & Trainable Parameters & Percentage & Comments \\ \hline
+0     & ["qkv\_proj"]     & 5417984              & 1.497\%    &          \\ \hline
+1     & ["qkv\_proj", "out\_proj"]        & 8039424              & 2.205\%    &          \\ \hline
+2     & ["qkv\_proj", "lm\_head"]        & 8760320              & 2.398\%    &          \\ \hline
+3     & ["qkv\_proj", "out\_proj", "lm\_head"]         & 11381760             & 3.094\%    &          \\ \hline
+4     & ["qkv\_proj", "fc\_in"]        & 11971584             & 3.249\%    &          \\ \hline
+5     & ["qkv\_proj", "fc\_out"]        & 11971584             & 3.249\%    &          \\ \hline
+6     & ["qkv\_proj", "fc\_in", "fc\_out"]        & 18525184             & 4.939\%    &          \\ \hline
+7     & ["qkv\_proj", "out\_proj", "lm\_head", "fc\_in", "fc\_out"]        & 24488960             & 6.427\%    &          \\ \hline
+\end{tabular}%
+}
