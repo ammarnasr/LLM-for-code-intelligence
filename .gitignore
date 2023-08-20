@@ -4,7 +4,7 @@ checkpoints\java-full-ft\checkpoint-200-20230611T132423Z-002.zip
 checkpoits/*/
 checkpoints
 checkpoints_local
-# runs
+runs
 # *.pkl
 wandb
 __pycache__
@@ -22,3 +22,7 @@ wanb_plots
 # *.pdf
 *.docx
 model_cards
+archive2
+results_archive
+results
+*.zip
