@@ -27,7 +27,7 @@ This model was fine-tuned using LoRa on 1 T4 GPU. The model was trained for 10,0
 
 We evaluate our models on the MultiPle-E bencchmark. The model achieves 8.9 Pass@10 Rate.
 <!-- add image 'final_pass_at_10.png' -->
-![final_pass_at_10](https://user-images.githubusercontent.com/1423657/137638724-9b0b8b0a-5b9a-4b0a-9b0a-9b0b0b0b0b0b.png)
+![final_pass_at_10](https://raw.githubusercontent.com/ammarnasr/LLM-for-code-intelligence/main/figs/final_pass_at_10.png)
 
 
 ## Intended Use and Limitations
