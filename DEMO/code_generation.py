@@ -11,7 +11,13 @@ def init_parameters():
     # example_prompts_file_name = "example_prompts.json"
     example_codes_file_name = "example_codes.json"
     example_stop_tokens_file_name = "example_stop_tokens.json"
-    # example_prompts = utils.read_json(example_prompts_file_name)
+    
+    if not os.path.exists(example_codes_file_name):
+        example_codes_file_name = './DEMO/example_codes.json'
+
+    if not os.path.exists(example_stop_tokens_file_name):
+        example_stop_tokens_file_name = './DEMO/example_stop_tokens.json'
+
     example_codes = utils.read_json(example_codes_file_name)
     example_stop_tokens = utils.read_json(example_stop_tokens_file_name)
 
