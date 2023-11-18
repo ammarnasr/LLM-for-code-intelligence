@@ -14,7 +14,6 @@ def init_parameters():
     
     if not os.path.exists(example_codes_file_name):
         example_codes_file_name = './DEMO/example_codes.json'
-
     if not os.path.exists(example_stop_tokens_file_name):
         example_stop_tokens_file_name = './DEMO/example_stop_tokens.json'
 
@@ -26,6 +25,20 @@ def init_parameters():
     ruby_example_prompts_file_name = "humaneval_rb.jsonl"
     rust_example_prompts_file_name = "humaneval_rs.jsonl"
     swift_example_prompts_file_name = "humaneval_swift.jsonl"
+
+    if not os.path.exists(java_example_prompts_file_name):
+        java_example_prompts_file_name = './DEMO/humaneval_java.jsonl'
+    if not os.path.exists(python_example_prompts_file_name):
+        python_example_prompts_file_name = './DEMO/humaneval_py.jsonl'
+    if not os.path.exists(ruby_example_prompts_file_name):
+        ruby_example_prompts_file_name = './DEMO/humaneval_rb.jsonl'
+    if not os.path.exists(rust_example_prompts_file_name):
+        rust_example_prompts_file_name = './DEMO/humaneval_rs.jsonl'
+    if not os.path.exists(swift_example_prompts_file_name):
+        swift_example_prompts_file_name = './DEMO/humaneval_swift.jsonl'
+
+
+
     java_example_prompts = utils.read_prompts(java_example_prompts_file_name)
     python_example_prompts = utils.read_prompts(python_example_prompts_file_name)
     ruby_example_prompts = utils.read_prompts(ruby_example_prompts_file_name)
