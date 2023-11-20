@@ -11,11 +11,6 @@ license: openrail
 ---
 
 ## Demo:
-
-
-```markdown
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](URL_TO_YOUR_APP)
-```
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://code-llms.streamlit.app/)
 
 
