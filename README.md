@@ -32,7 +32,7 @@ Here's a rundown of the steps I took to prepare the datasets:
 
 ## **Colab Notebooks**
 
-These notebooks were used to train the models and generate the results. Copies of these notebooks can be found in the GitHub repository and in respective folders within the .zip file (named demo.ipynb). The notebooks are also linked below:
+These notebooks were used to train the models and generate the results. Copies of these notebooks can be found in the GitHub repository and in respective folders within the .zip file (named demo.zip). The notebooks are also linked below:
 
 - [Full Fine-tuning Notebook](https://colab.research.google.com/drive/1BuRz-HBFCjxpmJfMg7QedbfNDXPl7Kap?usp=sharing)
 - [LoRa Fine-tuning Notebook](https://colab.research.google.com/drive/1iWzsUeih_ObBJwmOkuD5D9Wm72eiRbQV?usp=sharing)
@@ -66,7 +66,7 @@ These notebooks were used to train the models and generate the results. Copies o
 
 
 
-
+<!-- 
 ## Colab Notebooks
 Code-LLM-finetuning-V7.ipynb: <a href="https://colab.research.google.com/drive/1BuRz-HBFCjxpmJfMg7QedbfNDXPl7Kap?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=10></a>  
 
@@ -84,9 +84,6 @@ Code-LLM-Generation-Java.ipynb <a href="https://colab.research.google.com/drive/
 Code-LLM-Ablations.ipynb <a href="https://colab.research.google.com/drive/10ZIvvJml4cDMPVBPH_4QlLrU091XdGDA?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=10></a>  
 
 
-Code-LLM-Checkpoint-Generations.ipynb: <a href="https://colab.research.google.com/drive/10J_6AVmGv5GKX1vJ-A-4SfKFpRr8Q3HZ?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=10></a> 
-
-
-
+Code-LLM-Checkpoint-Generations.ipynb: <a href="https://colab.research.google.com/drive/10J_6AVmGv5GKX1vJ-A-4SfKFpRr8Q3HZ?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height=10></a>  -->
 
 
