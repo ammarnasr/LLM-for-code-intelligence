@@ -29,9 +29,6 @@ Here's a rundown of the steps I took to prepare the datasets:
 2. **Data Filtering**: To ensure quality, I filtered out files that didn't meet certain criteria, such as having an average line length exceeding 100 characters, a maximum line length exceeding 1000 characters, or an alphabet-to-numeric character ratio of less than 25%.
 3. **Data Splitting**: After filtering, I divided the remaining files into train, validation, and test sets using a 90-5-5 ratio, respectively.
 
-### **Tokenization Approach**
-
-For tokenization, I employed Byte Pair Encoding (BPE) tokenizers, which are a proven technique in code processing. These tokenizers include special tab and white space tokens into the existing GPT-2 vocabulary \cite{gpt2}. To create training sequences, I tokenized the code in the files, and these tokens were then concatenated to form sequences of up to 2048 tokens. I also made use of special separator tokens to differentiate between different files. In some experiments, sequences of varying lengths were used.
 
 ## **Colab Notebooks**
 
